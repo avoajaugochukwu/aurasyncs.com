@@ -6,6 +6,12 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'placehold.co',
+        port: '',
+        pathname: '/**', // Allows any path under this hostname
+      },
+      {
+        protocol: 'https',
         hostname: 'prod-files-secure.s3.us-west-2.amazonaws.com',
         port: '',
         pathname: '/**', // Allow any path under this hostname
