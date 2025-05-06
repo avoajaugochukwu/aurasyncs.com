@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { Fragment } from 'react';
 import type { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-
+import Image from 'next/image';
+// Helper function to create safe filenames for images
+function getSafeSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
 // Define a type for rich text items if needed, simplifying here
 type RichTextItem = any;
 
@@ -25,7 +32,7 @@ const renderRichText = (richText: RichTextItem[]) => {
   });
 };
 
-export const NotionRenderer: React.FC<{ blocks: BlockObjectResponse[] }> = ({ blocks }) => {
+export const NotionRenderer: React.FC<{ blocks: BlockObjectResponse[], blogSlug: string }> = ({ blocks, blogSlug }) => {
   return (
     <div className="prose dark:prose-invert max-w-none space-y-4">
       {blocks.map((block) => {
@@ -86,12 +93,22 @@ export const NotionRenderer: React.FC<{ blocks: BlockObjectResponse[] }> = ({ bl
             );
 
           case 'image':
-            const src = value.type === 'external' ? value.external.url : value.file.url;
+            let src = value.type === 'external' ? value.external.url : value.file.url;
             const caption = value.caption.length ? value.caption[0]?.plain_text : null;
+            // If blogSlug is provided, try to use local image
+            if (blogSlug) {
+              src = `/blog/${getSafeSlug(blogSlug)}.webp`;
+            }
+            
             return (
               <figure key={id} className="my-6">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt={caption ? String(caption) : 'Notion image'} className="max-w-full h-auto rounded-md mx-auto" />
+                <Image
+                  src={src}
+                  alt={caption ? String(caption) : 'Notion image'}
+                  width={800}
+                  height={500}
+                  className="max-w-full h-auto rounded-md mx-auto"
+                />
                 {caption && <figcaption className="text-center text-sm text-muted-foreground mt-2">{caption}</figcaption>}
               </figure>
             );

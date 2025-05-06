@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import AdminImageProcessor from './AdminImageProcessor';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -25,6 +26,7 @@ export function Footer() {
           >
             Terms of Service
           </Link>
+          <AdminImageProcessor />
         </nav>
       </div>
     </footer>

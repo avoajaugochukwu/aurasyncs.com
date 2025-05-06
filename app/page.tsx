@@ -18,16 +18,6 @@ export default async function Home() {
   const posts = pages.map((page: any) => {
     const dateStr = page.properties.Created?.created_time || new Date().toISOString();
 
-    let featuredImageUrl = 'https://placehold.co/600x400';
-    const featuredImageProp = page.properties["Featured Image"]?.files;
-    if (featuredImageProp && featuredImageProp.length > 0) {
-      if (featuredImageProp[0].type === 'external') {
-        featuredImageUrl = featuredImageProp[0].external.url;
-      } else if (featuredImageProp[0].type === 'file') {
-        featuredImageUrl = featuredImageProp[0].file.url;
-      }
-    }
-
     // Extract author names from multi-select
     const authorMultiSelect = page.properties.Author?.multi_select;
     let authorNames = 'Aurasyncs Team'; // Default author
@@ -42,8 +32,10 @@ export default async function Home() {
       slug: page.properties.Slug?.rich_text[0]?.plain_text || page.id,
       excerpt: page.properties.Excerpt?.rich_text[0]?.plain_text || 'No excerpt available.',
       formattedDate: format(new Date(dateStr), 'MMM d, yyyy'),
-      featuredImageUrl: featuredImageUrl,
-      author: authorNames, // Assign the joined author names string
+      featuredImageUrl: page.properties["Featured Image"]?.files,
+      author: authorNames,
+      readingTime: `${page.properties.ReadingTime?.number || 5} min read`,
+      tags: page.properties.Tags?.multi_select?.map((tag: any) => tag.name) || []
     };
   }).sort((a, b) => new Date(b.formattedDate).getTime() - new Date(a.formattedDate).getTime());
 

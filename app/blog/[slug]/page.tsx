@@ -94,7 +94,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
       </header>
 
       {/* Render Notion Blocks */}
-      <NotionRenderer blocks={blocks} />
+      <NotionRenderer blocks={blocks} blogSlug={slug} />
 
     </article>
   );

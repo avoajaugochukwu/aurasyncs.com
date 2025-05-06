@@ -39,16 +39,6 @@ export default async function BlogIndex() {
   const posts: Post[] = pages.map((page: any) => {
     const dateStr = page.properties.Created?.created_time || new Date().toISOString();
 
-    let featuredImageUrl = 'https://placehold.co/600x400'; // Default placeholder
-    const featuredImageProp = page.properties["Featured Image"]?.files;
-    if (featuredImageProp && featuredImageProp.length > 0) {
-      if (featuredImageProp[0].type === 'external') {
-        featuredImageUrl = featuredImageProp[0].external.url;
-      } else if (featuredImageProp[0].type === 'file') {
-        featuredImageUrl = featuredImageProp[0].file.url; // Use the file URL (might be temporary)
-      }
-    }
-
     // Extract author names from multi-select
     const authorMultiSelect = page.properties.Author?.multi_select;
     let authorNames = 'Aurasyncs Team'; // Default author
@@ -67,7 +57,7 @@ export default async function BlogIndex() {
       readingTime: `${page.properties.ReadingTime?.number || 5} min read`,
       tags: page.properties.Tags?.multi_select?.map((tag: any) => tag.name) || [],
       author: authorNames,
-      featuredImageUrl: featuredImageUrl,
+      featuredImageUrl: page.properties["Featured Image"]?.files,
     };
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
