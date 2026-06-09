@@ -1,5 +1,7 @@
 # BlogOS — Human-Quality Affirmation Posts at Scale
 
+> **Start here for the day-to-day workflow: [`PLAYBOOK.md`](./PLAYBOOK.md).** As of the 2026 reader redesign the output contract is the structured **`reader:` frontmatter block** (`structured-reader-skill.md`), not Markdown affirmation lists in the body. Sections of this README that describe the body as plain-Markdown lists/blockquote describe the **legacy prose-fallback** path; new posts use `reader:`.
+
 A skill pack adapted from FacelessOS (YouTube scriptwriting) for writing blog posts that Google rates as helpful, original, and trustworthy — and specifically tuned for `aurasyncs.com`: themed affirmation collections ("affirmations for anxiety", "self-love affirmations"), daily and occasion sets ("365 daily affirmations", "Monday affirmations"), faith and scripture sets ("Bible affirmations"), and practice guides ("how affirmations work", "manifestation for beginners"). Every post gives a real person the words they came for and the context that makes those words land.
 
 ## How the system maps to the project

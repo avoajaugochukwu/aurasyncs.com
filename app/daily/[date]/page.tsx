@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import type { Metadata } from "next";
-import { getDayBySlug, allDailySlugs, DISPLAY_TOTAL, getMoods, MOODS } from "@/lib/daily";
+import { getDayBySlug, allDailySlugs, DISPLAY_TOTAL, getMoods, MOODS, getMoodWriteups } from "@/lib/daily";
 import { getAllPosts } from "@/lib/posts";
 import { clusterFor, CLUSTERS } from "@/lib/clusters";
 import { DailyReader } from "@/components/daily/DailyReader";
@@ -44,8 +43,17 @@ export default async function DailyDatePage({ params }: DailyDatePageProps) {
   const url = `${baseUrl}/daily/${day.slug}`;
 
   // Cross-link into the existing topical cluster graph (two-way internal links).
-  const related = getAllPosts().find((p) => clusterFor(p.slug).id === day.cluster);
+  const relatedPost = getAllPosts().find((p) => clusterFor(p.slug).id === day.cluster);
   const clusterLabel = CLUSTERS.find((c) => c.id === day.cluster)?.label;
+  const related =
+    relatedPost && clusterLabel
+      ? {
+          title: relatedPost.title,
+          excerpt: relatedPost.excerpt || relatedPost.metaDescription,
+          slug: relatedPost.slug,
+          clusterLabel,
+        }
+      : null;
 
   const creativeWorkLd = {
     "@context": "https://schema.org",
@@ -89,47 +97,14 @@ export default async function DailyDatePage({ params }: DailyDatePageProps) {
         nextHref={`/daily/${day.nextSlug}`}
         moods={getMoods()}
         moodList={MOODS}
+        moodWriteups={getMoodWriteups()}
+        reflection={day.reflection}
+        practice={day.practice}
+        sourceIdea={day.source.idea}
+        authorName="Ugo Charles"
+        authorHref={authorHref("Ugo Charles")}
+        related={related}
       />
-
-      <article className="daily-prose">
-        <div className="section-label">
-          <span className="eyebrow">{day.monthName} {day.day} · Reflection</span>
-          <span className="rule" />
-        </div>
-        <p className="daily-reflection">{day.reflection}</p>
-
-        {day.practice && (
-          <aside className="prompt">
-            <span className="prompt-label">Carry it today</span>
-            <p className="prompt-text">{day.practice}</p>
-          </aside>
-        )}
-
-        <p className="daily-source meta">
-          Inspired by the old idea of <em>{day.source.idea}</em>. Written by{" "}
-          <Link href={authorHref("Ugo Charles")}>Ugo Charles</Link>.
-        </p>
-
-        {related && clusterLabel && (
-          <div className="related" style={{ marginTop: "2.5rem" }}>
-            <span className="eyebrow">Keep reading</span>
-            <h2 className="related-head">More on {clusterLabel.toLowerCase()}</h2>
-            <div className="related-grid">
-              <Link className="related-card" href={`/blog/${related.slug}`}>
-                <span className="related-title">{related.title}</span>
-                <span className="related-note">{related.excerpt || related.metaDescription}</span>
-                <span className="related-arrow" aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        <div className="daily-nav">
-          <Link href={`/daily/${day.prevSlug}`}>← Previous day</Link>
-          <Link href="/daily">All days</Link>
-          <Link href={`/daily/${day.nextSlug}`}>Next day →</Link>
-        </div>
-      </article>
       <div style={{ height: "3rem" }} />
     </>
   );

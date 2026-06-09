@@ -12,9 +12,16 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
-      <div className="prose prose-stone dark:prose-invert max-w-none space-y-4">
+    <div className="reader-scroll">
+      <header className="article-head">
+        <span className="eyebrow">Legal</span>
+        <h1 className="article-title">Privacy Policy</h1>
+        <p className="article-sub">
+          How we collect, use, and safeguard your information.
+        </p>
+      </header>
+
+      <div className="prose-body">
         <p>
           <em>Last Updated: 03/05/2025</em>
         </p>
@@ -25,18 +32,14 @@ export default function PrivacyPolicyPage() {
           privacy policy carefully. If you do not agree with the terms of this
           privacy policy, please do not access the site.
         </p>
-        <h2 className="text-2xl font-semibold mt-6 mb-3">
-          Collection of Your Information
-        </h2>
+        <h2>Collection of Your Information</h2>
         <p>
           We may collect information about you in a variety of ways. The
           information we may collect on the Site includes... [Add details about
           data collected, e.g., personal data, derivative data, financial data,
           etc.]
         </p>
-        <h2 className="text-2xl font-semibold mt-6 mb-3">
-          Use of Your Information
-        </h2>
+        <h2>Use of Your Information</h2>
         <p>
           Having accurate information about you permits us to provide you with a
           smooth, efficient, and customized experience. Specifically, we may use
@@ -44,13 +47,11 @@ export default function PrivacyPolicyPage() {
           how data is used, e.g., create account, process payments, email you,
           etc.]
         </p>
-        <h2 className="text-2xl font-semibold mt-6 mb-3">
-          Disclosure of Your Information
-        </h2>
+        <h2>Disclosure of Your Information</h2>
         <p>
           We may share information we have collected about you in certain
-          situations... [Add details about data sharing, e.g., by law, third-party
-          service providers, business transfers, etc.]
+          situations... [Add details about data sharing, e.g., by law,
+          third-party service providers, business transfers, etc.]
         </p>
         {/* Add more sections as needed: Security, Cookies, Policy for Children, Contact Us, etc. */}
         <p>
@@ -60,4 +61,4 @@ export default function PrivacyPolicyPage() {
       </div>
     </div>
   );
-} 
+}

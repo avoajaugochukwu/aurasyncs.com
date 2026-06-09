@@ -12,9 +12,16 @@ export const metadata: Metadata = {
 
 export default function TermsOfServicePage() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
-      <div className="prose prose-stone dark:prose-invert max-w-none space-y-4">
+    <div className="reader-scroll">
+      <header className="article-head">
+        <span className="eyebrow">Legal</span>
+        <h1 className="article-title">Terms of Service</h1>
+        <p className="article-sub">
+          The terms that govern your use of Aurasyncs.
+        </p>
+      </header>
+
+      <div className="prose-body">
         <p>
           <em>Last Updated: 03/05/2025</em>
         </p>
@@ -31,22 +38,20 @@ export default function TermsOfServicePage() {
           Terms. If you disagree with any part of the terms then you do not have
           permission to access the Service.
         </p>
-        <h2 className="text-2xl font-semibold mt-6 mb-3">Accounts</h2>
+        <h2>Accounts</h2>
         <p>
           When you create an account with us, you guarantee that you are above
           the age of 18, and that the information you provide us is accurate,
           complete, and current at all times... [Add details about account
           responsibilities, termination, etc.]
         </p>
-        <h2 className="text-2xl font-semibold mt-6 mb-3">
-          Intellectual Property
-        </h2>
+        <h2>Intellectual Property</h2>
         <p>
           The Service and its original content, features, and functionality are
           and will remain the exclusive property of Aurasyncs and its
           licensors... [Add details about IP rights.]
         </p>
-        <h2 className="text-2xl font-semibold mt-6 mb-3">Links To Other Web Sites</h2>
+        <h2>Links To Other Web Sites</h2>
         <p>
           Our Service may contain links to third-party web sites or services
           that are not owned or controlled by Aurasyncs... [Add disclaimer about
@@ -60,4 +65,4 @@ export default function TermsOfServicePage() {
       </div>
     </div>
   );
-} 
+}

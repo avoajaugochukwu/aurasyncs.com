@@ -118,6 +118,19 @@ export function getToday(): DailyEntry {
   return (buildEntry(key) ?? buildEntry('01-01'))!;
 }
 
+/** A window of (2*radius + 1) days centered on `slug`, wrapping around the year. */
+export function getWindowAround(slug: string, radius = 2): DailyEntry[] {
+  const key = keyForSlug(slug);
+  if (!key) return [];
+  const idx = ORDER.indexOf(key);
+  const out: DailyEntry[] = [];
+  for (let d = -radius; d <= radius; d++) {
+    const entry = buildEntry(ORDER[(idx + d + ORDER.length) % ORDER.length]);
+    if (entry) out.push(entry);
+  }
+  return out;
+}
+
 /** Slugs for every present day, in calendar order — feeds generateStaticParams + sitemap. */
 export function allDailySlugs(): string[] {
   const data = load();
@@ -146,6 +159,16 @@ export function getMoods(): Moods {
   const file = path.join(process.cwd(), 'content/daily/moods.json');
   _moods = JSON.parse(fs.readFileSync(file, 'utf8')) as Moods;
   return _moods;
+}
+
+/** One write-up per mood (the intro shown under the reader when a mood is active). */
+export type MoodWriteups = Record<MoodKey, string>;
+let _moodWriteups: MoodWriteups | null = null;
+export function getMoodWriteups(): MoodWriteups {
+  if (_moodWriteups) return _moodWriteups;
+  const file = path.join(process.cwd(), 'content/daily/mood-writeups.json');
+  _moodWriteups = JSON.parse(fs.readFileSync(file, 'utf8')) as MoodWriteups;
+  return _moodWriteups;
 }
 
 export type MonthGroup = {

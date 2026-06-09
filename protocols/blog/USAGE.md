@@ -1,5 +1,7 @@
 # BlogOS — Usage
 
+> **For the current day-to-day workflow, use [`PLAYBOOK.md`](./PLAYBOOK.md)** — the operator runbook for the structured `reader:` format (the 2026 reader redesign). The "Day-to-day flow" and "hard rules" below describe the **legacy prose-body** flow and are kept for the un-migrated posts; where they say "affirmations are Markdown lists in the body / leading blockquote / FAQ in the body," the structured contract instead puts that content in the `reader:` block and `faq:` frontmatter (see `structured-reader-skill.md`). Commands and path conventions below are still accurate.
+
 One default workflow (manual, research-driven) and three optional commands.
 
 ## The workflow at a glance

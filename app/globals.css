@@ -339,9 +339,10 @@ a { color: inherit; }
    Daily affirmations — Focus reader (ported from the prototype)
    ============================================================ */
 /* Compact hub hero so today's card sits above the fold. */
-.hero-compact { padding-top: 2.4rem; padding-bottom: 1.6rem; }
-.hero-compact .hero-quote { font-size: clamp(1.9rem, 4vw, 2.7rem); }
-.hero-compact .hero-sub { margin-top: 1.3rem; }
+.hero-compact { padding-top: 1.3rem; padding-bottom: 0.9rem; }
+.hero-compact .eyebrow { margin-bottom: 0.7rem; }
+.hero-compact .hero-quote { font-size: clamp(1.6rem, 3.2vw, 2.2rem); max-width: 26ch; }
+.hero-compact .hero-sub { margin-top: 0.8rem; font-size: 0.94rem; }
 
 .crumbs {
   max-width: 60rem; margin: 1.4rem auto 0; padding: 0 2rem;
@@ -366,12 +367,12 @@ a { color: inherit; }
   position: relative; padding: 1.5rem 0; min-height: 14rem;
 }
 .focus-zone {
-  position: absolute; top: 0; bottom: 0; width: 32%;
+  position: absolute; top: 0; bottom: 0; width: 16%;
   background: transparent; border: none; cursor: pointer; z-index: 2;
 }
 .focus-zone-prev { left: 0; cursor: w-resize; }
 .focus-zone-next { right: 0; cursor: e-resize; }
-.focus-quote { margin: 0; max-width: 24ch; text-align: center; z-index: 1; }
+.focus-quote { margin: 0; max-width: min(90vw, 52rem); text-align: center; z-index: 1; }
 .focus-text {
   font-family: var(--serif); font-weight: 300;
   font-size: clamp(1.85rem, 4.6vw, 3.1rem);
@@ -437,20 +438,66 @@ a { color: inherit; }
 /* hub — today card */
 .today-card {
   display: block; max-width: 44rem; margin: 0 auto;
-  padding: 2.2rem 2.4rem; border: 1px solid var(--line); border-radius: 10px;
+  padding: 1.7rem 2rem; border: 1px solid var(--line); border-radius: 10px;
   background: var(--surface); text-decoration: none; color: inherit;
   transition: border-color 0.2s, transform 0.2s;
 }
 .today-card:hover { border-color: var(--clay-soft); transform: translateY(-2px); }
-.today-eyebrow { display: block; margin-bottom: 1rem; }
+.today-card-live { cursor: default; }
+.today-card-live:hover { transform: none; border-color: var(--line); }
+.today-eyebrow { display: block; margin-bottom: 0.7rem; }
 .today-affirmation {
-  font-family: var(--serif); font-weight: 300; font-size: clamp(1.5rem, 3.4vw, 2.1rem);
-  line-height: 1.3; letter-spacing: -0.015em; margin: 0; text-wrap: balance;
+  font-family: var(--serif); font-weight: 300; font-size: clamp(1.4rem, 3vw, 1.9rem);
+  line-height: 1.28; letter-spacing: -0.015em; margin: 0; text-wrap: balance;
 }
 .today-foot { display: block; margin-top: 1.2rem; }
 .today-card:hover .arrow { color: var(--clay); }
 
-.daily-about { max-width: 42rem; margin: 2.2rem auto 0; padding: 0 2rem; }
+/* hub — mood picker on the today card */
+.hub-moods { margin-top: 1.1rem; }
+.hub-moods-label { display: block; margin-bottom: 0.45rem; font-size: 0.78rem; color: var(--faint); }
+.mood-chips-left { justify-content: flex-start; margin: 0; max-width: none; }
+.today-card-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 0.8rem; margin-top: 1.1rem;
+  padding-top: 1rem; border-top: 1px solid var(--line);
+}
+.today-open {
+  font-family: var(--sans); font-size: 0.88rem; font-weight: 500;
+  color: var(--clay); text-decoration: none;
+}
+.today-open:hover { text-decoration: underline; }
+
+/* hub — 5-day rolling window (today centered) */
+.day-window {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem;
+  max-width: 44rem; margin: 0.9rem auto 0;
+}
+.day-window-item {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  padding: 0.7rem 0.6rem; border: 1px solid var(--line); border-radius: 8px;
+  text-decoration: none; color: var(--muted); text-align: center;
+  transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.2s;
+}
+.day-window-item:hover { color: var(--clay); border-color: var(--clay-soft); background: var(--surface); }
+.day-window-item.is-today {
+  color: var(--ink); border-color: var(--clay-soft); background: var(--surface);
+  transform: scale(1.04);
+}
+.dw-date {
+  font-family: var(--sans); font-size: 0.78rem; font-weight: 600;
+  letter-spacing: 0.02em; color: var(--clay);
+}
+.day-window-item .dw-theme {
+  font-family: var(--serif); font-size: 0.82rem; line-height: 1.25;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+@media (max-width: 560px) {
+  .dw-theme { display: none; }
+  .day-window-item { padding: 0.55rem 0.3rem; }
+}
+
+.daily-about { max-width: 42rem; margin: 2.4rem auto 0; padding: 0 2rem; }
 .daily-about p { font-family: var(--serif); font-size: 1.1rem; line-height: 1.7; color: var(--ink-soft); }
 
 /* hub — month index grid */
@@ -469,6 +516,10 @@ a { color: inherit; }
   transition: color 0.15s, background 0.15s;
 }
 .month-day:hover { color: var(--clay); background: var(--surface); }
+.month-day.is-today {
+  color: var(--bg); background: var(--clay); font-weight: 600;
+}
+.month-day.is-today:hover { color: var(--bg); background: var(--clay); }
 
 /* topic chips (blog index browse-by-topic) */
 .topic-nav { max-width: 64rem; margin: 1.4rem auto 0; padding: 0 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }

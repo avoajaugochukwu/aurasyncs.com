@@ -7,7 +7,7 @@ export function useCopied(): [string | null, (text: string, key: string) => void
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const copy = useCallback((text: string, key: string) => {
-    const payload = `“${text}”`;
+    const payload = text;
     const done = () => {
       setCopiedKey(key);
       setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 1600);

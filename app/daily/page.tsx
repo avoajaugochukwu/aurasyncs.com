@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getToday, monthIndex, DISPLAY_TOTAL } from "@/lib/daily";
+import { getToday, monthIndex, getWindowAround, getMoods, MOODS, DISPLAY_TOTAL } from "@/lib/daily";
 import { MonthIndex } from "@/components/daily/MonthIndex";
+import { HubToday } from "@/components/daily/HubToday";
 import { baseUrl } from "@/app/metadata";
 
 // The featured "today" card rotates daily; refresh the static shell hourly.
@@ -43,6 +44,7 @@ export const metadata: Metadata = {
 export default function DailyHub() {
   const today = getToday();
   const months = monthIndex();
+  const window = getWindowAround(today.slug, 2);
   const total = DISPLAY_TOTAL;
 
   const collectionLd = {
@@ -76,18 +78,34 @@ export default function DailyHub() {
           A daily affirmation for <span className="soft">every day of the year.</span>
         </h1>
         <p className="hero-sub">
-          One short line a day, with a brief reflection to give it ground —
-          today&apos;s is below, and all {total} days are a tap away.
+          One short line a day — read today&apos;s below, or pick a mood.
         </p>
       </section>
 
-      <Link className="today-card" href={`/daily/${today.slug}`}>
-        <span className="today-eyebrow eyebrow">Today · {today.monthName} {today.day}</span>
-        <p className="today-affirmation">{today.affirmation}</p>
-        <span className="today-foot meta">
-          {today.theme} <span className="arrow" aria-hidden="true">→</span>
-        </span>
-      </Link>
+      <HubToday
+        dateLabel={`${today.monthName} ${today.day}`}
+        affirmation={today.affirmation}
+        todaySlug={today.slug}
+        moods={getMoods()}
+        moodList={MOODS}
+      />
+
+      <nav className="day-window" aria-label="Nearby days">
+        {window.map((d) => {
+          const isToday = d.slug === today.slug;
+          return (
+            <Link
+              key={d.slug}
+              className={"day-window-item" + (isToday ? " is-today" : "")}
+              href={`/daily/${d.slug}`}
+              aria-current={isToday ? "date" : undefined}
+            >
+              <span className="dw-date">{d.monthName.slice(0, 3)} {d.day}</span>
+              <span className="dw-theme">{d.theme}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
       <section className="daily-about">
         <p>
@@ -102,7 +120,7 @@ export default function DailyHub() {
         <span className="eyebrow">Browse all {total} days</span>
         <span className="rule" />
       </div>
-      <MonthIndex months={months} />
+      <MonthIndex months={months} todaySlug={today.slug} />
 
       <section className="faq" aria-label="Frequently asked questions" style={{ marginTop: "3rem" }}>
         <h2 className="faq-head">Questions, gently answered</h2>

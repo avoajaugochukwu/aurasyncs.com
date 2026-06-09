@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { MonthGroup } from "@/lib/daily";
 
 /** The 12-month calendar grid on the hub — a crawlable link to every day. */
-export function MonthIndex({ months }: { months: MonthGroup[] }) {
+export function MonthIndex({ months, todaySlug }: { months: MonthGroup[]; todaySlug?: string }) {
   return (
     <div className="month-index">
       {months.map((mo) => (
@@ -12,9 +12,10 @@ export function MonthIndex({ months }: { months: MonthGroup[] }) {
             {mo.days.map((d) => (
               <Link
                 key={d.slug}
-                className="month-day"
+                className={"month-day" + (d.slug === todaySlug ? " is-today" : "")}
                 href={`/daily/${d.slug}`}
                 title={`${mo.name} ${d.day} — ${d.theme}`}
+                aria-current={d.slug === todaySlug ? "date" : undefined}
               >
                 {d.day}
               </Link>
