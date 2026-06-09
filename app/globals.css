@@ -716,6 +716,8 @@ a { color: inherit; }
 
 /* FAQ */
 .faq { padding: 3.5rem 0 1rem; border-top: 1px solid var(--line); margin-top: 3rem; }
+/* Standalone FAQ (e.g. the /daily hub) carries its own centered column. */
+.faq-standalone { max-width: 44rem; margin-left: auto; margin-right: auto; padding-left: 2rem; padding-right: 2rem; }
 .faq-head { font-family: var(--serif); font-weight: 400; font-size: clamp(1.7rem, 3.6vw, 2.2rem); letter-spacing: -0.015em; margin: 0 0 2rem; text-align: center; }
 .faq-list { display: flex; flex-direction: column; gap: 1.8rem; }
 .faq-q { font-family: var(--serif); font-weight: 500; font-size: 1.3rem; line-height: 1.35; margin: 0 0 0.5rem; color: var(--ink); }
@@ -790,3 +792,26 @@ a { color: inherit; }
 .prose-body table { width: 100%; border-collapse: collapse; margin: 1.6rem 0; font-size: 0.95rem; }
 .prose-body th, .prose-body td { border: 1px solid var(--line); padding: 0.6rem 0.8rem; text-align: left; }
 .prose-body th { font-weight: 600; color: var(--ink); background: var(--surface); }
+
+/* ============================================================
+   DOC pages (privacy / terms) — FAQ-style typography, no drop cap
+   headings = .faq-q treatment (serif 500), body = .faq-a treatment (sans)
+   ============================================================ */
+.doc-body { font-family: var(--sans); }
+.doc-body > p:first-of-type { /* "Last Updated" line — quiet, no drop cap */ }
+.doc-body h2 {
+  font-family: var(--serif); font-weight: 500; color: var(--ink);
+  font-size: 1.3rem; line-height: 1.35; letter-spacing: -0.005em;
+  margin: 2.3rem 0 0.7rem;
+}
+.doc-body p, .doc-body li {
+  font-family: var(--sans); font-size: 1rem; line-height: 1.7;
+  color: var(--ink-soft); margin: 0 0 1.1rem; max-width: 60ch;
+}
+.doc-body > p:first-of-type em { color: var(--faint); font-style: italic; font-size: 0.9rem; }
+.doc-body ul { margin: 0 0 1.2rem; padding-left: 0; list-style: none; }
+.doc-body ul > li { position: relative; padding-left: 1.3rem; margin-bottom: 0.5rem; }
+.doc-body ul > li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 5px; height: 5px; border-radius: 50%; background: var(--clay-soft); }
+.doc-body strong { color: var(--ink); font-weight: 600; }
+.doc-body a { color: var(--clay); text-decoration: none; border-bottom: 1px solid var(--clay-soft); }
+.doc-body a:hover { color: var(--ink); }

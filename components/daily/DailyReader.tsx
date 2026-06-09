@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CopyButton, useCopied } from "@/components/reader/CopyButton";
-import type { Moods, MoodKey, MoodWriteups } from "@/lib/daily";
+import type { Moods, MoodKey, MoodEntry } from "@/lib/daily";
 
 export type RelatedLink = { title: string; excerpt: string; slug: string; clusterLabel: string };
 
@@ -19,7 +19,6 @@ type DailyReaderProps = {
   nextHref: string;
   moods: Moods;
   moodList: { key: MoodKey; label: string }[];
-  moodWriteups: MoodWriteups;
   /** The date's reflection block (shown when no mood is active). */
   reflection: string;
   practice?: string;
@@ -44,7 +43,6 @@ export function DailyReader({
   nextHref,
   moods,
   moodList,
-  moodWriteups,
   reflection,
   practice,
   sourceIdea,
@@ -56,8 +54,11 @@ export function DailyReader({
   const router = useRouter();
 
   const [mood, setMood] = useState<MoodKey | null>(null);
-  const [line, setLine] = useState(affirmation);
+  const [picked, setPicked] = useState<MoodEntry | null>(null);
   const [dir, setDir] = useState(1);
+
+  // The line on screen: the date's affirmation by default, or the picked mood line.
+  const line = picked ? picked.affirmation : affirmation;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -77,18 +78,18 @@ export function DailyReader({
     const pool = moods[key] ?? [];
     if (pool.length === 0) return;
     let next = pool[Math.floor(Math.random() * pool.length)];
-    for (let i = 0; i < 4 && next === line && pool.length > 1; i++) {
+    for (let i = 0; i < 4 && next.affirmation === line && pool.length > 1; i++) {
       next = pool[Math.floor(Math.random() * pool.length)];
     }
     setDir(1);
     setMood(key);
-    setLine(next);
+    setPicked(next);
   };
 
   const reset = () => {
     setDir(-1);
     setMood(null);
-    setLine(affirmation);
+    setPicked(null);
   };
 
   const activeLabel = mood ? moodList.find((m) => m.key === mood)?.label : null;
@@ -151,7 +152,21 @@ export function DailyReader({
       </div>
 
       <article className="daily-prose">
-        {mood === null || !activeLabel ? (
+        {picked && activeLabel ? (
+          <>
+            <div className="section-label">
+              <span className="eyebrow">{activeLabel} · Reflection</span>
+              <span className="rule" />
+            </div>
+            <p className="daily-reflection">{picked.reflection}</p>
+            {picked.practice && (
+              <aside className="prompt">
+                <span className="prompt-label">Carry it today</span>
+                <p className="prompt-text">{picked.practice}</p>
+              </aside>
+            )}
+          </>
+        ) : (
           <>
             <div className="section-label">
               <span className="eyebrow">{dateLabel} · Reflection</span>
@@ -168,14 +183,6 @@ export function DailyReader({
               Inspired by the old idea of <em>{sourceIdea}</em>. Written by{" "}
               <Link href={authorHref}>{authorName}</Link>.
             </p>
-          </>
-        ) : (
-          <>
-            <div className="section-label">
-              <span className="eyebrow">{activeLabel} · About these affirmations</span>
-              <span className="rule" />
-            </div>
-            <p className="daily-reflection">{moodWriteups[mood]}</p>
           </>
         )}
 

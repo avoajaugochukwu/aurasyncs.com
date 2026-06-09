@@ -143,7 +143,9 @@ export function totalDays(): number {
 
 /** Mood pools surfaced as a random-line picker inside the reader (client-only, no URLs). */
 export type MoodKey = 'body' | 'wealth' | 'confidence' | 'calm' | 'love';
-export type Moods = Record<MoodKey, string[]>;
+/** Each mood line carries its own reflection (like a daily entry), surfaced when picked. */
+export type MoodEntry = { affirmation: string; reflection: string; practice?: string };
+export type Moods = Record<MoodKey, MoodEntry[]>;
 
 export const MOODS: { key: MoodKey; label: string }[] = [
   { key: 'body', label: 'Body' },
@@ -161,15 +163,6 @@ export function getMoods(): Moods {
   return _moods;
 }
 
-/** One write-up per mood (the intro shown under the reader when a mood is active). */
-export type MoodWriteups = Record<MoodKey, string>;
-let _moodWriteups: MoodWriteups | null = null;
-export function getMoodWriteups(): MoodWriteups {
-  if (_moodWriteups) return _moodWriteups;
-  const file = path.join(process.cwd(), 'content/daily/mood-writeups.json');
-  _moodWriteups = JSON.parse(fs.readFileSync(file, 'utf8')) as MoodWriteups;
-  return _moodWriteups;
-}
 
 export type MonthGroup = {
   month: number;

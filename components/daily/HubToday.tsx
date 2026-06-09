@@ -26,11 +26,11 @@ export function HubToday({ dateLabel, affirmation, todaySlug, moods, moodList }:
     const pool = moods[key] ?? [];
     if (pool.length === 0) return;
     let next = pool[Math.floor(Math.random() * pool.length)];
-    for (let i = 0; i < 4 && next === line && pool.length > 1; i++) {
+    for (let i = 0; i < 4 && next.affirmation === line && pool.length > 1; i++) {
       next = pool[Math.floor(Math.random() * pool.length)];
     }
     setMood(key);
-    setLine(next);
+    setLine(next.affirmation);
   };
 
   const reset = () => {

@@ -122,7 +122,7 @@ export default function DailyHub() {
       </div>
       <MonthIndex months={months} todaySlug={today.slug} />
 
-      <section className="faq" aria-label="Frequently asked questions" style={{ marginTop: "3rem" }}>
+      <section className="faq faq-standalone" aria-label="Frequently asked questions" style={{ marginTop: "3rem" }}>
         <h2 className="faq-head">Questions, gently answered</h2>
         <div className="faq-list">
           {FAQ.map((f) => (
