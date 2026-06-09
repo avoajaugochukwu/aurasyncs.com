@@ -11,6 +11,7 @@ Follow the BlogOS pack end to end. Do not skip the research or the gate. One pos
 
 Read before drafting:
 - @protocols/blog/blog-os-master.md
+- @protocols/blog/structured-reader-skill.md   ← the output contract (the `reader:` block)
 - @protocols/blog/page-structures-skill.md
 - @protocols/blog/affirmation-craft-skill.md
 - @protocols/blog/accuracy-and-trust-skill.md
@@ -27,16 +28,16 @@ Pull in `BLOG-INTRO-SWIPE.md`, `conclusion-and-cta-skill.md`, `scannable-formatt
 2. **Derive the slug** (kebab-case = the `.mdx` filename; check `content/posts/` for an existing/sibling slug — don't collide or duplicate intent). Find 3–6 sibling posts in the same cluster to cross-link.
 3. **Research (Pass 1).** WebSearch the keyword → read the top results and the People-Also-Ask box. WebFetch any source needed to confirm a load-bearing fact: the psychology of affirmations (peer-reviewed/.edu/.gov), any scripture quote + reference + translation, any health/money claim. Note the angle that makes this non-generic (the grouping scheme, the real how-to-use, the sourced why-it-works).
 4. **Consult `variety-rotation-skill.md`** + the recent entries in `protocols/rotation-log.md` and pick slots that differ from recent posts in this cluster.
-5. **Draft** as plain-Markdown MDX per the type's skeleton: frontmatter, then a leading blockquote answer box (40–60 words: what the set is for, roughly how many affirmations, how to use them), the grouped affirmation lists (first person, present tense, laddered where tender), the how-to-use, the sourced why-it-works with a light support-not-replace note where the topic is clinical, tips, a `## Frequently asked questions` section (2–4 `###` questions from PAA), and one CTA linking to a sibling post.
-6. **Affirmation + fact verification (Pass 2 — the gate, `accuracy-and-trust-skill.md`).** Read every affirmation as the reader: present tense, first person, positive framing, believable/laddered, non-harmful. Verify every load-bearing claim against a reputable source and cite it; quote scripture exactly with the translation named; hedge honestly where evidence is modest. Patch inline (literal swaps only).
+5. **Draft the `reader:` block** (`structured-reader-skill.md`): `tag`, a `subtitle` carrying the keyword, `opening.quote` (+ `note`), `intro[]` framing prose, and 3–5 `sections[]` — each with a `keyword`, framing `intro`, **original `body[]` prose** (the differentiation; how/why these work, the support-not-replace note where clinical), `whenToUse`, grouped `quotes[]` (first person, present tense, laddered where tender), and a `prompt`. Put 2–4 PAA questions in `faq:`. Body = the pointer comment. Don't author `related:` (auto).
+6. **Affirmation + attribution + fact verification (Pass 2 — the gate, `accuracy-and-trust-skill.md`).** Read every affirmation as the reader: present tense, first person, positive framing, believable/laddered, non-harmful. **Attribution: every `quote.author` is a verified real source or `"Anonymous"` — never `"AI-generated"`, never a fabricated name/credential/provenance.** Verify every load-bearing claim against a reputable source and cite it; quote scripture exactly with the translation named; hedge honestly where evidence is modest. Patch inline (literal swaps only).
 7. **Mandatory re-audit** (`blog-os-master.md` §8). Fix every violation. If any affirmation is unsafe or any claim is unverifiable, emit ONLY the audit with `❌ POST NOT SHIPPED` and stop.
 8. **Write the file** to `content/posts/<slug>.mdx` and output the `===AUDIT===` block.
 
-## The MDX file shape
+## The MDX file shape (structured)
 
 ```mdx
 ---
-title: "..."                 # also the H1 + meta title; front-load the keyword, ≤ ~60 chars
+title: "Calm the Storm: 25+ Anxiety Affirmations to Soothe Your Mind"  # H1 = pre-colon part; full string → <title>/og/headline
 excerpt: "..."               # short on-page/card hook
 metaDescription: "..."       # full 150–160 chars, separate from excerpt
 author: "Ugo Charles"
@@ -44,24 +45,39 @@ tags: ["affirmations", "<theme>"]
 readingTime: 6
 createdTime: "<ISO datetime>"
 lastEditedTime: "<ISO datetime>"
-featuredImage: "/blog/<slug>.webp"   # omit if no image exists yet
+featuredImage: "/blog/<slug>.webp"   # OG/social only; omit if none
+faq:
+  - q: "..."
+    a: "..."
+reader:
+  tag: "Affirmations"
+  subtitle: "..."            # the dek; carries the keyword
+  opening: { quote: "...", note: "..." }
+  intro: ["...framing prose..."]
+  sections:
+    - id: "<id>"
+      title: "..."
+      keyword: "..."
+      intro: "..."
+      body: ["...original depth prose..."]
+      whenToUse: "..."
+      quotes:
+        - { text: "...", author: "Anonymous" }   # verified source or "Anonymous"; never "AI-generated"
+      prompt: "..."
 ---
 
-![descriptive alt](/blog/<slug>-content-1.webp)   # optional featured/inline image
-
-> [the 40–60 word answer-box blockquote]
-
-## How to use these affirmations
-...
+{/* This post renders from the structured `reader:` frontmatter above. Edit `reader:` to change the post. */}
 ```
 
-No `slug`/`status`/`metaTitle` frontmatter (slug = filename; the file existing = published). The route auto-emits `BlogPosting` + `BreadcrumbList` JSON-LD, canonical, OG, and Twitter — don't hand-author them.
+No `slug`/`status`/`metaTitle`/`related` frontmatter (slug = filename; the file existing = published; Related is auto). The route auto-emits `BlogPosting` + `BreadcrumbList` + (when `faq:` present) `FAQPage` JSON-LD, canonical, OG, and Twitter — don't hand-author them. Full schema: `structured-reader-skill.md`.
 
 ## Hard rules
 
-- No `#` H1 in the body (the `title` frontmatter is the H1; use `##`/`###`). No `{#id}` anchors, no `$…$` math, no invented JSX. GFM tables render but use sparingly (prose/grouped lists usually read better).
+- Affirmations + writing go in the `reader:` block, not the body. Every `reader:` prose field is **plain text** (no Markdown/links/headings — they render literally). Body = the pointer comment.
+- `title` is `"<short phrase>: <keyword payoff>"` (H1 = pre-colon); `reader.subtitle` carries the keyword. `metaDescription` a full 150–160 chars, separate from `excerpt`.
+- **Every section has a non-empty `body[]`** of original prose — a section that's just a list is thin content.
 - Every affirmation present tense, first person, positively framed, believable or laddered; no denial/toxic positivity, no guaranteed-outcome phrasing.
-- No fabricated statistics or studies; scripture exact with translation named; support-not-replace note where clinical.
-- `metaDescription` is a full 150–160 chars and separate from `excerpt`.
+- **Every `quote.author` is a verified real source or `"Anonymous"`** — never `"AI-generated"`, never a fabricated name/credential/provenance.
+- No fabricated statistics or studies; scripture exact with translation named; support-not-replace note where clinical (often `opening.note`).
 
 Append a rotation-log entry to `protocols/rotation-log.md`.

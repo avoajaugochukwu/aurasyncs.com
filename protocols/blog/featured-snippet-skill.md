@@ -156,33 +156,27 @@ Below or beside the snippet box, Google shows "People Also Ask" — expandable r
 
 ### How to capture PAA on this site
 
-`FAQPage` JSON-LD is **not** emitted today (the route does emit `BlogPosting` + `BreadcrumbList` — see `seo-and-schema-skill.md`), so you capture PAA with a plain FAQ section written as Markdown in the body, not from any frontmatter key.
+You capture PAA via the **`faq:` frontmatter list** — the reader renders it as the on-page FAQ **and the route emits `FAQPage` JSON-LD** from the same pairs (so the schema answers match the visible answers by construction). Don't put FAQ in the body.
 
 1. **Research the PAA stack.** Search the target query, read the PAA box, write down the 5-8 questions Google shows, and click each to see the source page it pulled. Affirmation PAA is rich — e.g. "Do affirmations really work?", "How many times should I say an affirmation?", "What are the most powerful affirmations?", "Can affirmations help with anxiety?".
-2. **Add an `##` heading titled "Frequently asked questions"** near the end of the body.
-3. **Phrase each question exactly as Google shows it, as an `###` heading.**
-4. **Answer each in 40-60 words** of plain prose (a paragraph) directly under the `###` — a self-contained, liftable answer, same discipline as the top blockquote.
+2. **Add 2-4 pairs to `faq:`** in the frontmatter. Phrase each `q:` exactly as Google shows it.
+3. **Answer each in 40-60 words** of plain prose — a self-contained, liftable answer, same discipline as the opening quote.
 
 ### Example
 
-Target query "affirmations for anxiety"; the PAA box shows several related questions. The body carries:
+Target query "affirmations for anxiety"; the PAA box shows several related questions. The frontmatter carries:
 
-```
-## Frequently asked questions
-
-### Do affirmations really work for anxiety?
-Affirmations can help by softening anxious self-talk and reminding you that hard feelings pass. They work best when the words feel believable and you say them consistently. They're a supportive tool, not a cure — if anxiety is overwhelming or ongoing, it's worth talking to a doctor or therapist too.
-
-### How many times should I say an affirmation?
-There's no magic number. A few minutes in the morning and again at night, said with attention, beats rushing through a long list once. Consistency matters more than count. Pick two or three affirmations that feel true today and repeat those until they feel natural.
-
-### What are the most calming affirmations to say?
-Short, present-tense phrases that acknowledge the feeling without denying it work best, like "I am safe in this moment" or "this will pass." Avoid forcing "I feel no fear" — affirmations that argue with your real feelings tend to backfire. Choose words that feel within reach.
+```yaml
+faq:
+  - q: "Do affirmations really work for anxiety?"
+    a: "Affirmations can help by softening anxious self-talk and reminding you that hard feelings pass. They work best when the words feel believable and you say them consistently. They're a supportive tool, not a cure — if anxiety is overwhelming or ongoing, it's worth talking to a doctor or therapist too."
+  - q: "How many times should I say an affirmation?"
+    a: "There's no magic number. A few minutes in the morning and again at night, said with attention, beats rushing through a long list once. Consistency matters more than count. Pick two or three affirmations that feel true today and repeat those until they feel natural."
+  - q: "What are the most calming affirmations to say?"
+    a: "Short, present-tense phrases that acknowledge the feeling without denying it work best, like 'I am safe in this moment' or 'this will pass.' Avoid forcing 'I feel no fear' — affirmations that argue with your real feelings tend to backfire. Choose words that feel within reach."
 ```
 
-Each answer is 40-60 words, plain prose, self-contained — so any one can be lifted into a PAA box. Note the clinical topic carries the light "support, not a cure / see a professional" note. Make sure every claim is verifiable and every affirmation well-formed per `accuracy-and-trust-skill.md`.
-
-> Note: FAQPage rich results require FAQPage JSON-LD, which isn't emitted yet (`BlogPosting` + `BreadcrumbList` ARE auto-emitted; see `seo-and-schema-skill.md`). The body FAQ section still earns PAA placement on its own; if/when FAQPage is wired up, the answer text must match these visible answers word-for-word.
+Each answer is 40-60 words, plain prose, self-contained — so any one can be lifted into a PAA box and the emitted `FAQPage` answer matches it word-for-word. Note the clinical topic carries the light "support, not a cure / see a professional" note. Make sure every claim is verifiable and every affirmation well-formed per `accuracy-and-trust-skill.md`.
 
 ---
 
@@ -212,7 +206,7 @@ Before writing, decide which snippet you're targeting:
 - [ ] `##` above any list phrased close to the target query
 - [ ] Comparisons default to prose/lists; a GFM table only where the data is genuinely 2-D (used sparingly)
 - [ ] Voice stays warm and empowering while the claim stays honest
-- [ ] PAA questions captured in a body `## Frequently asked questions` (`##` + `###` + 40-60 word paragraph answers), not frontmatter
+- [ ] PAA questions captured in the **`faq:` frontmatter** list (2-4 `q:`/`a:` pairs, 40-60 word answers) — emits `FAQPage` + renders on-page; not in the body
 - [ ] Clinical topics (anxiety, depression, grief, health) carry the light "support, not a replacement" note
 - [ ] Every psychology/scripture/health claim in a snippet target is correct per `accuracy-and-trust-skill.md`
 

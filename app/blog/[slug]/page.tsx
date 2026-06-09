@@ -2,9 +2,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getAllPosts, getAllSlugs, getPostBySlug } from '@/lib/posts';
 import { getRelatedPosts } from '@/lib/clusters';
+import { authorHref as getAuthorHref } from '@/lib/authors';
 import { MdxContent } from '@/components/MdxContent';
-import { RelatedPosts } from '@/components/RelatedPosts';
-import { Badge } from "@/components/ui/badge";
+import { ScrollReader, type RelatedLink } from '@/components/reader/ScrollReader';
 import { format } from 'date-fns';
 import { baseUrl } from '@/app/metadata';
 import type { Metadata } from 'next';
@@ -77,6 +77,13 @@ export default async function BlogPage({ params }: BlogPageProps) {
   const url = `${baseUrl}/blog/${slug}`;
   const formattedDate = format(new Date(post.createdTime), 'MMMM d, yyyy');
   const readingTime = `${post.readingTime} min read`;
+  // Site rule: the visible H1 shows only the part before the colon (cleaner, shorter).
+  // The keyword-rich remainder lives in the subtitle/excerpt; the full keyword title
+  // stays in the <title> tag, OpenGraph, and schema below for SEO.
+  const displayTitle = post.title.includes(':')
+    ? post.title.slice(0, post.title.indexOf(':')).trim()
+    : post.title;
+  const authorLink = getAuthorHref(post.author);
   const imageAbsolute = post.featuredImage ? `${baseUrl}${post.featuredImage}` : undefined;
 
   const jsonLd = {
@@ -87,7 +94,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
     image: imageAbsolute ? [imageAbsolute] : undefined,
     datePublished: post.createdTime,
     dateModified: post.lastEditedTime,
-    author: { '@type': 'Person', name: post.author },
+    author: { '@type': 'Person', name: post.author, url: `${baseUrl}${authorLink}` },
     publisher: {
       '@type': 'Organization',
       name: 'Aurasyncs.com',
@@ -120,10 +127,14 @@ export default async function BlogPage({ params }: BlogPageProps) {
         }
       : null;
 
-  const related = getRelatedPosts(post, getAllPosts());
+  const related: RelatedLink[] = getRelatedPosts(post, getAllPosts(), 3).map((p) => ({
+    title: p.title,
+    note: p.excerpt || p.metaDescription || '',
+    href: `/blog/${p.slug}`,
+  }));
 
-  return (
-    <article className="container mx-auto px-4 py-12 max-w-3xl">
+  const Schema = (
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -138,42 +149,90 @@ export default async function BlogPage({ params }: BlogPageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
         />
       )}
+    </>
+  );
 
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-6">
-        <Link href="/" className="hover:text-primary">Home</Link>
-        <span className="mx-2">/</span>
-        <Link href="/blog" className="hover:text-primary">Affirmations</Link>
-      </nav>
+  const BackLink = (
+    <nav className="back-link">
+      <Link href="/blog">
+        <span aria-hidden="true">←</span> All affirmations
+      </Link>
+    </nav>
+  );
 
-      <header className="mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">{post.title}</h1>
-        <div className="text-muted-foreground text-sm mb-4">
-          <span>{formattedDate}</span> · <span>{readingTime}</span> · <span>By {post.author}</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {post.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">{tag}</Badge>
-          ))}
-        </div>
-      </header>
+  // --- Structured Scroll reader (posts with `reader:` frontmatter) ---
+  if (post.reader) {
+    return (
+      <article>
+        {Schema}
+        {BackLink}
+        <ScrollReader
+          reader={post.reader}
+          title={displayTitle}
+          author={post.author}
+          authorHref={authorLink}
+          date={formattedDate}
+          readingTime={readingTime}
+          faq={post.faq}
+          related={related}
+        />
+      </article>
+    );
+  }
 
-      <MdxContent source={post.content} />
-
-      {post.faq.length > 0 && (
-        <section className="mt-16 border-t pt-8" aria-label="Frequently asked questions">
-          <h2 className="text-2xl font-bold mb-6">Frequently asked questions</h2>
-          <div className="space-y-6">
-            {post.faq.map((item) => (
-              <div key={item.q}>
-                <h3 className="text-lg font-semibold mb-2">{item.q}</h3>
-                <p className="text-foreground/90 leading-7">{item.a}</p>
-              </div>
-            ))}
+  // --- Styled-prose fallback (existing MDX posts) ---
+  return (
+    <article>
+      {Schema}
+      {BackLink}
+      <div className="reader-scroll">
+        <header className="article-head">
+          <span className="eyebrow">Affirmations</span>
+          <h1 className="article-title">{displayTitle}</h1>
+          {post.excerpt && <p className="article-sub">{post.excerpt}</p>}
+          <div className="article-meta meta">
+            <Link href={authorLink}>{post.author}</Link>
+            <span className="dot">·</span>
+            <span>{formattedDate}</span>
+            <span className="dot">·</span>
+            <span>{readingTime}</span>
           </div>
-        </section>
-      )}
+        </header>
 
-      <RelatedPosts posts={related} />
+        <div className="prose-reader">
+          <MdxContent source={post.content} />
+        </div>
+
+        {post.faq.length > 0 && (
+          <section className="faq" aria-label="Frequently asked questions">
+            <h2 className="faq-head">Questions, gently answered</h2>
+            <div className="faq-list">
+              {post.faq.map((item) => (
+                <div className="faq-item" key={item.q}>
+                  <h3 className="faq-q">{item.q}</h3>
+                  <p className="faq-a">{item.a}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {related.length > 0 && (
+          <section className="related">
+            <span className="eyebrow">Keep reading</span>
+            <h2 className="related-head">More gentle collections</h2>
+            <div className="related-grid">
+              {related.map((r) => (
+                <Link className="related-card" href={r.href} key={r.href}>
+                  <span className="related-title">{r.title}</span>
+                  <span className="related-note">{r.note}</span>
+                  <span className="related-arrow" aria-hidden="true">→</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </article>
   );
 }

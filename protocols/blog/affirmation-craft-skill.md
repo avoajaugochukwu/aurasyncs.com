@@ -48,7 +48,7 @@ A bare run of 50 affirmations is thin content and hard to use. Group every list:
 - **By intensity (the ladder)** — gentle/opening affirmations first, bolder claims later, so a struggling reader has an on-ramp.
 - **By life area** — for money: mindset, action, gratitude, security.
 
-Give each group a `##` (or `###` under a section), frame it in one sentence, then the affirmations as list items. The grouping *is* part of the original value (see `blog-os-master.md` rule 2).
+Make each group a `reader.sections[]` entry, frame it in `intro`, explain it in `body[]`, then the affirmations in `quotes[]`. The grouping *and the per-section writing* are the original value (see `blog-os-master.md` rule 2 and `structured-reader-skill.md`).
 
 ## The terminology — use the practice's own words correctly
 
@@ -68,16 +68,32 @@ Give each group a `##` (or `###` under a section), frame it in one sentence, the
 - **Match the register to the audience/tone modifier** (kids = simple and concrete; faith = reverent; funny/sweary = playful) **without breaking the six marks** — a sweary affirmation is still present tense, first person, and non-harmful underneath the humor.
 - **Ranges use an en dash:** "25–30 affirmations", "2–3 to carry today".
 
-## How to present an affirmation list (the four-part pattern)
+## How to present an affirmation section (where each piece goes)
 
-A grouped affirmation section is high-stakes because the reader will actually repeat these. Each group follows this pattern:
+Affirmations now live in a structured `reader.sections[]` entry (see `structured-reader-skill.md`), not a Markdown list. Each section is high-stakes because the reader will actually repeat these lines. Map the craft to the fields:
 
-1. **Name the group with a `##`/`###`** that says when or why to use it ("Affirmations for a racing-thoughts moment").
-2. **Frame it in one sentence** — when this set helps and how to say it.
-3. **List the affirmations** as first-person, present-tense Markdown bullet-list items (`- …`), laddered where the topic is tender (gentler ones first).
-4. **Offer a using tip** where useful — pick two or three, repeat slowly, pair with a breath.
+1. **`title`** — name the group for when or why to use it ("Grounding & Safety"), with a `keyword` for the section eyebrow.
+2. **`intro`** — one framing sentence: when this set helps.
+3. **`body[]`** — 1–2 paragraphs of **original writing** (how these work, how to say them, what shifts). This prose is the site's anti-thin-content differentiation; a section without it is just a styled list.
+4. **`quotes[]`** — the affirmations as `{ text, author }`, first-person and present-tense, **laddered where tender** (gentler ones first). A strong, relevant `"Anonymous"` line can lead.
+5. **`whenToUse`** — the practitioner note (panic's first wave, a sleepless 3am).
+6. **`prompt`** — a reflection/breath prompt to close the group.
 
-A complete affirmation answer therefore reads: grouped by situation, each group framed, every line well-formed and believable, with a gentle on-ramp for the reader who isn't there yet.
+A complete section therefore reads: framed, explained in original prose, every line well-formed and believable, with a gentle on-ramp — then a prompt that turns reading into practice.
+
+## Attribution — a verified source or "Anonymous" (never anything else)
+
+Every `quote.author` is exactly one of two things:
+
+- **A verified real source** you confirmed (WebSearch/WebFetch) actually said/wrote it — a person, a text, or a named tradition (`Eleanor Roosevelt`, `Ram Dass`, `Persian adage`). Verify *before* attributing.
+- **`"Anonymous"`** — for original lines, common un-authored affirmations, or anything you can't verify.
+
+Hard rules (this is a trust gate, see `accuracy-and-trust-skill.md`):
+
+- **Never `"AI-generated"`** — a generated line with no source is `"Anonymous"`.
+- **Never fabricate a source or credential** — inventing an author ("Maya Liu"), misattributing to a real person ("Adapted from Richard Rohr" for a line he never wrote), pseudo-sourcing ("Anonymous songwriter", "Indie song lyric", "Meditation teaching", "Unknown"), or a fake credential ("X, a licensed therapist") is **worse than "Anonymous"** and a publish blocker.
+- **Don't claim provenance you don't have** — if a section's prose says the lines come "from songs and poets," they must. Otherwise frame them honestly as original/uncommon affirmations.
+- A healthy section mixes a few verified attributions with many honest `"Anonymous"` lines — more credible than a wall of suspiciously-named quotes.
 
 ## Re-audit hook
 
@@ -88,7 +104,8 @@ Every post passes this affirmation-craft & terminology check before it ships (fo
 - [ ] Affirmations are **believable or laddered**; tender topics lead with the lower rungs.
 - [ ] No **denial / toxic positivity** ("I am never anxious", "I feel no pain") for clinical or grief topics.
 - [ ] No **guaranteed-outcome** affirmation phrasing (money/health/manifestation as a spell).
-- [ ] Lines are **short and speakable**; lists are **grouped** with each group framed in a sentence.
+- [ ] Lines are **short and speakable**; affirmations are **grouped** into `reader.sections[]`, each framed (`intro`) and **explained in original `body[]` prose**.
+- [ ] Every `author` is a **verified real source or `"Anonymous"`** — no `"AI-generated"`, no fabricated source/credential, no false provenance.
 - [ ] Practice **terminology** (affirmation, mantra, declaration, self-affirmation theory, manifestation, chakra) used correctly and consistently; defined on first use in guides.
 - [ ] Scripture-based affirmations are exact, correctly referenced, and name the translation (see `accuracy-and-trust-skill.md`).
 

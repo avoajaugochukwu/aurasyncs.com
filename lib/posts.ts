@@ -6,6 +6,36 @@ import matter from 'gray-matter';
 
 export type FaqItem = { q: string; a: string };
 
+export type Quote = { text: string; author?: string };
+
+export type ReaderSection = {
+  id: string;
+  title: string;
+  /** Optional SEO keyword shown as the section eyebrow. */
+  keyword?: string;
+  /** One-line framing under the section title. */
+  intro?: string;
+  /** Longer depth-prose paragraphs. */
+  body: string[];
+  /** Practitioner "when to reach for these" note. */
+  whenToUse?: string;
+  quotes: Quote[];
+  /** Reflection / journaling prompt closing the section. */
+  prompt?: string;
+};
+
+/**
+ * Optional structured `reader:` frontmatter that powers the full Scroll reader.
+ * Posts without it fall back to styled MDX prose.
+ */
+export type Reader = {
+  tag: string;
+  subtitle?: string;
+  opening?: { quote: string; note?: string };
+  intro: string[];
+  sections: ReaderSection[];
+};
+
 export type Post = {
   slug: string;
   title: string;
@@ -19,6 +49,8 @@ export type Post = {
   featuredImage: string | null;
   /** Optional FAQ pairs (frontmatter `faq:`) used for an on-page FAQ + FAQPage schema. */
   faq: FaqItem[];
+  /** Optional structured reader (frontmatter `reader:`); null → render prose. */
+  reader: Reader | null;
   /** Raw MDX body (without frontmatter). */
   content: string;
 };
@@ -28,6 +60,60 @@ function parseFaq(raw: unknown): FaqItem[] {
   return raw
     .map((item) => ({ q: String(item?.q ?? '').trim(), a: String(item?.a ?? '').trim() }))
     .filter((item) => item.q && item.a);
+}
+
+function str(v: unknown): string {
+  return typeof v === 'string' ? v.trim() : '';
+}
+
+function strList(v: unknown): string[] {
+  if (Array.isArray(v)) return v.map(str).filter(Boolean);
+  const s = str(v);
+  return s ? [s] : [];
+}
+
+function parseQuotes(raw: unknown): Quote[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((q) => {
+      if (typeof q === 'string') return { text: q.trim() };
+      return { text: str(q?.text), author: str(q?.author) || undefined };
+    })
+    .filter((q) => q.text);
+}
+
+function parseReader(raw: unknown): Reader | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const sectionsRaw = Array.isArray(r.sections) ? r.sections : [];
+  const sections: ReaderSection[] = sectionsRaw
+    .map((s, i) => {
+      const sec = (s ?? {}) as Record<string, unknown>;
+      return {
+        id: str(sec.id) || `section-${i + 1}`,
+        title: str(sec.title),
+        keyword: str(sec.keyword) || undefined,
+        intro: str(sec.intro) || undefined,
+        body: strList(sec.body),
+        whenToUse: str(sec.whenToUse) || undefined,
+        quotes: parseQuotes(sec.quotes),
+        prompt: str(sec.prompt) || undefined,
+      };
+    })
+    .filter((s) => s.title && s.quotes.length > 0);
+
+  if (sections.length === 0) return null;
+
+  const openingRaw = (r.opening ?? null) as Record<string, unknown> | null;
+  return {
+    tag: str(r.tag) || 'Affirmations',
+    subtitle: str(r.subtitle) || undefined,
+    opening: openingRaw && str(openingRaw.quote)
+      ? { quote: str(openingRaw.quote), note: str(openingRaw.note) || undefined }
+      : undefined,
+    intro: strList(r.intro),
+    sections,
+  };
 }
 
 const POSTS_DIR = path.join(process.cwd(), 'content', 'posts');
@@ -48,6 +134,7 @@ function readPostFile(slug: string): Post | undefined {
     lastEditedTime: data.lastEditedTime ?? data.createdTime ?? new Date(0).toISOString(),
     featuredImage: data.featuredImage ?? null,
     faq: parseFaq(data.faq),
+    reader: parseReader(data.reader),
     content,
   };
 }

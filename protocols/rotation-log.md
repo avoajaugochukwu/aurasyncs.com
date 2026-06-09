@@ -28,3 +28,11 @@ Format per entry (see `variety-rotation-skill.md` for the slot codes):
 ---
 
 <!-- New entries appended below by /b-write and /b-review. No entries yet — corpus reset for aurasyncs. -->
+
+## anxiety-affirmations-calm-your-mind — 2026-06-09 — review (attribution pass)
+- Scope: attribution research only (structured `reader:` block, Scroll-reader format).
+- Verified & kept: Eleanor Roosevelt (*You Learn by Living*), Ram Dass ("Be here now", 1971), "This too shall pass" → Persian adage (Sanai/Attar, confirmed).
+- Demoted to "Anonymous" (fabricated/unverifiable sources): Anna Campbell, "Maya Liu", "Julia Verity", "K. Lawson", "Adapted from Richard Rohr", plus vague pseudo-sources "Anonymous songwriter", "Indie song lyric", "Meditation teaching", "Unknown".
+- Reframed section "Hidden Gems" → "Quiet, Unexpected Lines": removed the false claim that the lines come from real songs/poets/interviews; removed fabricated "Julia Verity, a licensed therapist" bio.
+- Removed the now-redundant pre-migration Markdown body (canonical content lives in the `reader:` block); body replaced with a pointer comment.
+- Bumped lastEditedTime → 2026-06-09.

@@ -23,7 +23,7 @@ The route's `generateMetadata` and the page component together emit **rich metad
 - **`BlogPosting` JSON-LD** — headline, description, image, datePublished (`createdTime`), dateModified (`lastEditedTime`), author Person, publisher Organization **"Aurasyncs.com"**, mainEntityOfPage, keywords (from `tags`)
 - **`BreadcrumbList` JSON-LD** — Home → Affirmations → this post
 
-**Not emitted today:** FAQPage, HowTo (and ItemList/DefinedTerm/CollectionPage). FAQ content lives in the body as prose; FAQPage is a future enhancement — see the FAQPage / HowTo subsection below. Everything above (BlogPosting, BreadcrumbList, OG, Twitter, canonical) **does** ship — do **not** hand-author it, and do not put a `schema` key in frontmatter (nothing reads it).
+**Now also emitted: `FAQPage`** — built automatically from the **`faq:` frontmatter list** (2–4 `q:`/`a:` pairs) and rendered on-page by the reader. FAQ content lives in `faq:` frontmatter, not the body. **Still NOT emitted:** HowTo (and ItemList/DefinedTerm/CollectionPage). Everything (BlogPosting, BreadcrumbList, FAQPage, OG, Twitter, canonical) **ships automatically** — do **not** hand-author it, and do not put a `schema` key in frontmatter (nothing reads it).
 
 ---
 
@@ -181,11 +181,9 @@ Home → Affirmations → this post. Pure derived data, built from the slug + `t
 }
 ```
 
-### FAQPage / HowTo (NOT emitted — future enhancement)
+### FAQPage (emitted from `faq:`) / HowTo (not emitted)
 
-These are the only schema types **not** wired today. FAQ content still lives in the body as prose (a `## Frequently asked questions` section — see `featured-snippet-skill.md`) and earns People Also Ask placement on its own; it just doesn't emit `FAQPage` JSON-LD yet.
-
-If FAQPage is wired up later, the route would parse the `##`/`###` FAQ pairs out of the body and emit a script whose answer text matches the visible answers word-for-word. Because the renderer adds no auto heading IDs, no schema `url`/anchor should point at `#frequently-asked-questions` — that fragment won't resolve. `HowTo` (for step-by-step practice guides) is likewise a future add. Until then, don't claim either renders.
+`FAQPage` **is** wired now: the route builds it from the **`faq:` frontmatter list** (2–4 `q:`/`a:` pairs) and the reader renders the same pairs on-page, so the JSON-LD answer text matches the visible answers by construction. Put FAQ content in `faq:`, **not** the body, and keep answers concise and accurate (don't pad for schema). `HowTo` (for step-by-step practice guides) remains a future add — don't claim it renders.
 
 ---
 
@@ -251,7 +249,7 @@ The `google-trust-audit-skill.md` checks for these. Recap:
 - [ ] Outbound links to credible sources for any load-bearing claim (psychology / study / named-translation scripture / health authority)
 - [ ] Every psychology / scripture / health / money claim verified per `accuracy-and-trust-skill.md`; no fabricated stats
 
-Canonical, OpenGraph (incl. per-post og:image from `featuredImage`), Twitter, and the `BlogPosting` + `BreadcrumbList` JSON-LD are all emitted automatically — nothing to hand-author there beyond feeding clean frontmatter. `FAQPage`/`HowTo` are the only schema types **not** wired yet; don't rely on them.
+Canonical, OpenGraph (incl. per-post og:image from `featuredImage`), Twitter, and the `BlogPosting` + `BreadcrumbList` JSON-LD are all emitted automatically — plus `FAQPage` when `faq:` is present. Nothing to hand-author beyond feeding clean frontmatter (incl. a good `faq:` list). `HowTo` is the only schema type still **not** wired; don't rely on it.
 
 ---
 

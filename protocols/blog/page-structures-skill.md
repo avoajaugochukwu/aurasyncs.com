@@ -5,21 +5,26 @@ description: The content types Aurasyncs ships. Every post is a plain-Markdown .
 
 # Page Structures — The Aurasyncs Content Types
 
-> Aurasyncs renders every post through **one** route: `app/blog/[slug]/page.tsx` reads `content/posts/<slug>.mdx`, parses frontmatter with **`gray-matter`** (`lib/posts.ts`), renders the `<h1>` from the `title` field, then runs the Markdown body through **`next-mdx-remote/rsc` `<MDXRemote>`** (`components/MdxContent.tsx`) with **`remark-gfm`** and a fixed component map. The map styles only `h1, h2, h3, p, ul, ol, li, blockquote, hr, code, pre, a, img` — there are **no custom JSX components** (`AnswerBox`, `Callout`, `ProTip` do not exist). GFM tables render (remark-gfm), but for affirmations prose and grouped lists usually read better. The route also auto-emits `BlogPosting` + `BreadcrumbList` JSON-LD, canonical, OpenGraph (per-post og:image), and a Twitter card. The "shape" of a post is carried entirely by the Markdown body skeleton you choose.
+> Aurasyncs renders every post through **one** route: `app/blog/[slug]/page.tsx` reads `content/posts/<slug>.mdx` (`lib/posts.ts`, `gray-matter`). **If the frontmatter has a `reader:` block, the route renders `components/reader/ScrollReader.tsx`** (the warm Scroll reader); otherwise it falls back to the Markdown body through `<MDXRemote>` (`components/MdxContent.tsx`, `remark-gfm`, fixed map — no custom JSX components). The route auto-emits `BlogPosting` + `BreadcrumbList` JSON-LD, canonical, OpenGraph (per-post og:image), a Twitter card, and — when `faq:` is present — `FAQPage` JSON-LD. The H1 renders the part of `title` before the first colon; `reader.subtitle` carries the rest. **A new post's shape is carried by the `reader:` block, not a Markdown body skeleton** — see `structured-reader-skill.md` for the schema. The per-type skeletons below are the *section plan* you express as `reader.sections[]` (and the literal Markdown shape for legacy prose-fallback posts).
 
 Pick the type from the keyword's search intent. The value drives word count and snippet strategy. Every affirmation is well-formed and non-harmful (`affirmation-craft-skill.md`) and every load-bearing claim is sourced (`accuracy-and-trust-skill.md`).
 
 ---
 
-## What carries structure (no custom components)
+## What carries structure (the `reader:` block)
 
-Because the body is plain Markdown (in an `.mdx` file), the two non-negotiable structural elements are built from Markdown primitives:
+A structured post's shape is the `reader:` block (`structured-reader-skill.md`). The skeletons below map to it like this:
 
-- **Answer box** → a **blockquote** (`> …`) near the top of the body (often right after the featured image). The component map renders a `>` block as a left-bordered, italic box. This is the featured-snippet target and the orienting answer.
-- **CTA / cross-link** → a normal **Markdown link** to a sibling affirmation post, e.g. `[morning affirmations](/blog/morning-affirmations-to-transform-your-day)`, placed in the conclusion.
-- **Tip / note** → a **bold lead-in line** ("**A gentle note.** …") or a blockquote. There is no callout component.
+| Skeleton element | `reader:` field |
+|---|---|
+| Answer box (the orienting line) | `opening.quote` (+ `opening.note`) |
+| Framing intro / "how to use" / "why it works" | `intro[]` and each section's `body[]` |
+| A themed `##` group | one `sections[]`: `title`, `keyword`, `intro`, **`body[]`**, `whenToUse`, `quotes[]`, `prompt` |
+| The affirmations (the bullet list) | `sections[].quotes[]` as `{ text, author }` |
+| FAQ section | `faq:` frontmatter (emits `FAQPage`) |
+| CTA / cross-links | **auto Related cards** (cluster map) — not authored |
 
-Everything else is `##` / `###` headings, paragraphs, ordered/unordered lists (the affirmations), and Markdown images. **Don't invent JSX tags** — raw JSX needs a component in the map, which doesn't exist. If a comparison is genuinely tabular, a GFM table works, but a grouped list usually reads better for affirmations.
+The non-negotiables: every section needs a `title` + ≥1 `quote` **and a non-empty `body[]`** (the original writing is the differentiation), every `author` is a verified source or `"Anonymous"`, and all `reader:` prose is **plain text** (no Markdown/links). For legacy prose-fallback posts only, the structural elements are Markdown primitives (a leading `> ` blockquote answer box, `##`/`###` headings, `- ` affirmation lists, inline links) through the fixed component map — no custom JSX.
 
 ---
 
@@ -42,22 +47,37 @@ All types output to `content/posts/<slug>.mdx`. They share the universal rules a
 
 ```yaml
 ---
-title: "Affirmations for Anxiety: 25+ Calming Phrases to Quiet Your Mind"
+title: "Calm the Storm: 25+ Anxiety Affirmations to Soothe Your Mind"  # H1 = pre-colon part; full string → <title>/og/headline
 excerpt: "Short 1–2 sentence on-page hook (shown on the blog index card)."
 metaDescription: "150–160 char SERP description, SEPARATE from excerpt."
 author: "Ugo Charles"
 tags: ["affirmations", "anxiety"]
 readingTime: 6
 createdTime: "2025-08-18T23:09:00.000Z"
-lastEditedTime: "2025-08-18T23:30:00.000Z"
-featuredImage: "/blog/affirmations-for-anxiety-finding-peace-inner-calm.webp"
+lastEditedTime: "2026-06-09T00:00:00.000Z"
+featuredImage: "/blog/anxiety-affirmations-calm-your-mind.webp"   # OG/social only
+faq:                       # 2–4 PAA pairs → FAQ section + FAQPage JSON-LD
+  - q: "…"
+    a: "…"
+reader:                    # THE CONTENT — full schema in structured-reader-skill.md
+  tag: "Affirmations"
+  subtitle: "25+ anxiety affirmations to soothe your mind and find peace"  # carries the keyword
+  opening: { quote: "…", note: "…" }
+  intro: ["…framing prose…"]
+  sections:
+    - { id: "grounding", title: "Grounding & Safety", keyword: "anxiety affirmations",
+        intro: "…", body: ["…original prose…"], whenToUse: "…",
+        quotes: [ { text: "I am safe. I am here. I am grounded.", author: "Anonymous" } ],
+        prompt: "…" }
 ---
 ```
 
 Field notes:
 
 - The **slug is the filename** (`content/posts/<slug>.mdx`) — there is **no `slug` frontmatter field**. Taken from the brief; don't invent a new one.
-- `title` — serves as **both** the H1 and the `<title>` / og:title / JSON-LD headline. There is one title field; there is no `metaTitle`. Front-load the keyword; keep the load-bearing part ≤ ~60 chars. Do **not** repeat it as a `#` heading at the top of the body.
+- `title` — feeds `<title>` / og:title / JSON-LD headline (full keyword, ≤ ~60 chars, no `metaTitle`). The on-page **H1 renders only the part before the first colon**; `reader.subtitle` carries the keyword-rich remainder. Write `"<short phrase>: <keyword payoff>"`.
+- `faq` — 2–4 `q:`/`a:` pairs (PAA). Renders as the FAQ section **and emits `FAQPage` JSON-LD**.
+- `reader` — the structured content block (the affirmations + original writing). Full schema in `structured-reader-skill.md`. There is **no `related:` field** (Related cards are auto from the cluster map).
 - `excerpt` — a short 1–2 sentence on-page hook. Nullable.
 - `metaDescription` — a **separate** 150–160 char SERP description. Don't conflate it with `excerpt`. (Many existing posts have this truncated to ~100 chars — fix to a full line when you touch them.)
 - `author` — the byline. Default in copy is **"Ugo Charles"** (the loader falls back to "Aurasyncs Team" if omitted).
@@ -66,7 +86,7 @@ Field notes:
 - `createdTime` / `lastEditedTime` — ISO datetimes. `createdTime` → `datePublished`/og:publishedTime; `lastEditedTime` → `dateModified`/og:modifiedTime (bump it on edits).
 - `featuredImage` — full path (`/blog/<slug>.webp`); the file lives at `public/blog/<slug>.webp`. Omit if none.
 
-There is **no `status` field** (the file existing = published) and **no `relatedCategories`/`relatedPages`** (cross-links are inline Markdown links). A `BlogPosting` + `BreadcrumbList` JSON-LD pair is emitted **automatically** by the route; `FAQPage`/`HowTo` are **not** (optional future work), so FAQ content lives in the body as prose. See `seo-and-schema-skill.md`.
+There is **no `status` field** (the file existing = published) and **no `related` field** (Related cards are auto-computed from the cluster map). `BlogPosting` + `BreadcrumbList` JSON-LD are emitted automatically, **plus `FAQPage` when `faq:` is present**; `HowTo` is not. FAQ content lives in **`faq:` frontmatter**, not the body. See `seo-and-schema-skill.md`.
 
 ---
 
@@ -263,12 +283,10 @@ The structure stays the type's structure; the modifier changes the voice and exa
 
 ---
 
-## Heading hierarchy (universal, non-negotiable)
+## Heading hierarchy
 
-- H1 lives in the frontmatter `title:` only. **Never a `#` in the body.** The route renders the H1, and the component map maps a body `#`/`h1` to an `<h2>` anyway. Top sections are `##`, sub-sections `###`.
-- Body starts with content (often the featured image), then the **answer blockquote** (`>`), then `##` sections.
-- **No `{#id}` anchors and no auto heading IDs** — the renderer does not slugify headings. Don't write anchor syntax; it prints literally.
-- `##` → `###`, no skips.
+- **Structured post:** the H1 is the (pre-colon) `title`; the section headings are `reader.sections[].title`. You don't write Markdown headings at all — the reader renders the hierarchy. Order sections as a believability ladder.
+- **Legacy prose-fallback post:** H1 from `title` only — **never a `#` in the body** (a body `#` maps to `<h2>`). Body starts with content, then the answer blockquote (`>`), then `##` → `###` (no skips), no `{#id}` anchors (the renderer doesn't slugify).
 
 See `scannable-formatting-skill.md` for the full discipline.
 

@@ -7,11 +7,12 @@ Audit and fix the existing Aurasyncs post: **$ARGUMENTS**
 
 ## Resolve the post
 
-Read `content/posts/$ARGUMENTS.mdx` (the slug, with or without the `.mdx` — strip it if given). If it doesn't exist, list near-matches from `content/posts/` and ask. It's a plain-Markdown MDX file: `gray-matter` frontmatter + a Markdown body.
+Read `content/posts/$ARGUMENTS.mdx` (the slug, with or without the `.mdx` — strip it if given). If it doesn't exist, list near-matches from `content/posts/` and ask. A `gray-matter` MDX file that is **either structured** (a `reader:` frontmatter block drives the Scroll reader — audit *that*) **or legacy prose** (affirmations in the Markdown body — consider migrating it; see `structured-reader-skill.md` §Migration).
 
 ## Load the pack
 
 - @protocols/blog/blog-os-master.md
+- @protocols/blog/structured-reader-skill.md   ← the output contract (the `reader:` block)
 - @protocols/blog/page-structures-skill.md
 - @protocols/blog/affirmation-craft-skill.md
 - @protocols/blog/accuracy-and-trust-skill.md
@@ -25,11 +26,11 @@ Pull in `featured-snippet`, `scannable-formatting`, `topical-authority`, `resear
 
 Run the full re-audit from `blog-os-master.md` §8 against the post:
 
-1. **Frontmatter.** `title` (= H1 + meta title, front-loads the keyword), `excerpt` vs `metaDescription` (the latter a full 150–160 chars — many existing posts are truncated to ~100; fix), `author` ("Ugo Charles"), `tags` (1–4), `readingTime`, `createdTime`, `lastEditedTime`. No invented fields (no `slug`, `status`, `metaTitle`).
-2. **Body.** No `#` H1 in the body (top sections `##`, sub `###`). A leading blockquote answer box (40–60 words). No `{#id}` anchors, no `$…$` math, no invented JSX. Tables only where genuinely tabular (GFM renders, but prose/lists usually read better). A `## Frequently asked questions` section where the type calls for it.
-3. **Affirmation craft (`affirmation-craft-skill.md`).** Every affirmation present tense, first person, positively framed, believable/laddered, short, grouped. Flag any denial / toxic positivity / future-tense / guaranteed-outcome lines and rewrite them.
-4. **Accuracy & trust (the gate, `accuracy-and-trust-skill.md`).** Read every affirmation as the reader (safe, non-denying). Verify every load-bearing claim against a reputable source via WebSearch/WebFetch; cut or fix fabricated statistics and non-existent studies; confirm any scripture quote + reference + translation; ensure a support-not-replace note where the topic is clinical; ensure manifestation/money is framed as mindset, not a guaranteed outcome.
-5. **Anti-AI-slop, scannability, internal links, voice.** Fix slop phrases, ensure a scannability event every 200–300 words, 3–6 sibling cross-links (inline Markdown links to `/blog/<slug>`), one clean CTA, and the voice lock.
+1. **Frontmatter.** `title` (`"<short phrase>: <keyword payoff>"` — H1 = pre-colon, ≤ ~60 chars), `excerpt` vs `metaDescription` (the latter a full 150–160 chars — many existing posts are truncated to ~100; fix), `author` ("Ugo Charles"), `tags` (1–4), `readingTime`, `createdTime`, `lastEditedTime`, `faq:` (2–4 PAA pairs). No invented fields (no `slug`, `status`, `metaTitle`, `related`).
+2. **Reader block (`structured-reader-skill.md`).** `reader:` valid: `tag`, `subtitle` (carries the keyword), `opening.quote`, `intro[]`, ≥1 `section` with `title` + ≥1 `quote`. **Every section has a non-empty `body[]`** of original prose (flag list-only sections as thin). All `reader:` prose is plain text (no Markdown/links). Body is the pointer comment, not a duplicate. *(Legacy prose post: no `#` H1 in body, leading blockquote answer, `##`/`###`, no `{#id}`/`$…$`/JSX — and consider migrating to `reader:`.)*
+3. **Affirmation craft (`affirmation-craft-skill.md`).** Every affirmation (`sections[].quotes[]`) present tense, first person, positively framed, believable/laddered, short, grouped. Flag any denial / toxic positivity / future-tense / guaranteed-outcome lines and rewrite them.
+4. **Attribution + accuracy gate (`accuracy-and-trust-skill.md`).** Read every affirmation as the reader (safe, non-denying). **Every `quote.author` is a verified real source or `"Anonymous"` — fix any `"AI-generated"`, invented name, "Adapted from <real author>", pseudo-source ("songwriter"/"song lyric"/"Meditation teaching"/"Unknown"), fabricated credential, or false provenance claim in the prose** (verify named sources via WebSearch/WebFetch). Verify every load-bearing claim; cut/fix fabricated statistics and non-existent studies; confirm scripture quote + reference + translation; ensure a support-not-replace note where clinical; manifestation/money framed as mindset, not guaranteed outcome.
+5. **Anti-AI-slop, scannability, cross-links, voice.** Fix slop phrases; the reader's sections/bands/prompts are the scannability events; cross-links are the auto Related cards (don't fake inline links in `reader:` prose); preserve the voice lock.
 
 ## Fix and write back
 

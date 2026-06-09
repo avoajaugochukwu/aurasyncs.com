@@ -19,40 +19,76 @@ Three rules sit above everything else in this pack:
 
 ---
 
-## OUTPUT MODE — MDX, PLAIN MARKDOWN ELEMENTS ONLY (PROJECT DEFAULT, STRONG)
+## OUTPUT MODE — STRUCTURED `reader:` MDX (PROJECT DEFAULT, STRONG)
 
-**This project has exactly one output mode: a plain-Markdown `.mdx` file.** No alternatives, no "version A vs B". The extension is `.mdx`, but you write it like Markdown — no invented JSX tags.
+**As of the 2026 reader redesign, a new post's affirmations and the writing around them live in a structured `reader:` block in the frontmatter — not as Markdown lists in the body.** `lib/posts.ts` parses that block; `components/reader/ScrollReader.tsx` renders it as the warm Scroll reader. **`structured-reader-skill.md` is the authoritative spec for this format — read it.** The full contract (the `reader:` schema, the title/colon rule, the attribution rule, the per-section original-writing requirement) is there; this section is the summary.
 
-The writer's output is a single `.mdx` file written to `content/posts/<slug>.mdx` — a flat directory, one file per post. It starts with the YAML frontmatter delimiter (`---`) and ends with the last line of the body. Nothing precedes the frontmatter; nothing follows the body. **The slug is the filename** — there is no Notion, no database, no build/migrate step, and no `status` field. The file existing in `content/posts/` is what publishes it.
+The output is still a single `.mdx` file at `content/posts/<slug>.mdx` — one file per post, frontmatter then body. **The slug is the filename** — no Notion, no database, no `status` field; the file existing in `content/posts/` is what publishes it.
 
-`lib/posts.ts` reads each file with **`gray-matter`** (frontmatter → fields, body → `content`). `app/blog/[slug]/page.tsx` renders the `<h1>` from the frontmatter `title`, runs the body through **`next-mdx-remote/rsc` `<MDXRemote>`** (`components/MdxContent.tsx`) with **`remark-gfm`** and a fixed component map, and **auto-emits a `BlogPosting` JSON-LD block and a `BreadcrumbList` JSON-LD block**, plus canonical, OpenGraph (with a per-post og:image from `featuredImage`), and a Twitter card. (Project assets are handled by `scripts/gen-assets.mjs`; you just drop images under `public/blog/`.)
+`lib/posts.ts` reads each file with **`gray-matter`** and parses the `reader:` block (and `faq:`) into typed fields. `app/blog/[slug]/page.tsx`:
+
+- **If `reader:` is present** → renders `<ScrollReader>` (eyebrow → H1 → subtitle → opening quote → drop-cap intro → themed sections each with original prose + affirmation "bands" + a reflection prompt → auto Related cards → FAQ). **The Markdown body is ignored** (leave it as a one-line pointer comment).
+- **If `reader:` is absent** → renders the **styled-prose fallback** (`<MDXRemote>` over the Markdown body, `components/MdxContent.tsx`, `remark-gfm`, fixed component map). This is the path the ~58 not-yet-migrated posts take, and the body rules below apply only to them.
+
+Either way the route **auto-emits `BlogPosting` + `BreadcrumbList` JSON-LD**, canonical, OpenGraph (per-post og:image from `featuredImage`), and a Twitter card — **plus `FAQPage` JSON-LD when `faq:` is present**, and an author byline that links to `/author/<slug>`. The reader is **text-editorial** (no on-page thumbnails or hero image — `featuredImage` is OG/social only) and ships **Sand (light) + Dusk (dark)** themes, with copy-to-clipboard on every affirmation. (Assets: drop images under `public/blog/`.)
 
 ### Frontmatter contract (exactly what `lib/posts.ts` reads)
 
 ```mdx
 ---
-title: "Affirmations for Anxiety: 25+ Calming Phrases to Quiet Your Mind"   # rendered <h1> AND <title>/og:title
+title: "Calm the Storm: 25+ Anxiety Affirmations to Soothe Your Mind"   # full keyword title → <title>/og:title/headline; H1 = part BEFORE the colon
 excerpt: "Short 1–2 sentence on-page hook, shown on the blog index card."   # nullable
 metaDescription: "150–160 char SERP description; SEPARATE from excerpt."     # nullable
-author: "Ugo Charles"                 # the byline (loader default is "Aurasyncs Team")
+author: "Ugo Charles"                 # the byline (loader default is "Aurasyncs Team"); links to /author/<slug>
 tags: ["affirmations", "anxiety"]     # YAML list, 1–4 short topical tags
 readingTime: 6                        # number, minutes
 createdTime: "2025-08-18T23:09:00.000Z"   # ISO datetime → datePublished / og:publishedTime
-lastEditedTime: "2025-08-18T23:30:00.000Z" # ISO datetime → dateModified / og:modifiedTime (bump on edits)
-featuredImage: "/blog/affirmations-for-anxiety-finding-peace-inner-calm.webp"   # full path, or omit
+lastEditedTime: "2026-06-09T00:00:00.000Z" # ISO datetime → dateModified / og:modifiedTime (bump on edits)
+featuredImage: "/blog/anxiety-affirmations-calm-your-mind.webp"   # OG/social only (no on-page hero), or omit
+faq:                                  # 2–4 PAA questions → on-page FAQ + FAQPage JSON-LD
+  - q: "Do affirmations really help with anxiety?"
+    a: "…"
+reader:                               # THE OUTPUT CONTRACT — see structured-reader-skill.md for the full schema
+  tag: "Affirmations"
+  subtitle: "25+ anxiety affirmations to soothe your mind and find peace"   # the dek; CARRIES the keyword
+  opening: { quote: "…", note: "…" }
+  intro: ["…original framing prose…"]
+  sections:
+    - id: "grounding"
+      title: "Grounding & Safety"
+      keyword: "anxiety affirmations"
+      intro: "…one framing line…"
+      body: ["…original depth prose (the differentiation)…"]
+      whenToUse: "…when to reach for these…"
+      quotes:
+        - { text: "I am safe. I am here. I am grounded.", author: "Anonymous" }
+      prompt: "…a reflection prompt…"
 ---
 ```
 
-- **`title` does double duty:** it is the rendered `<h1>` and the `<title>` / og:title / JSON-LD headline. There is **no** `metaTitle`. Front-load the keyword; keep the load-bearing part ≤ ~60 chars so it survives in the SERP. Do **not** repeat it as a heading at the top of the body.
+- **`title` does double duty AND the H1 is shortened.** `title` feeds `<title>` / og:title / JSON-LD headline (keep the full keyword here, ≤ ~60 chars). The on-page **H1 renders only the part before the first colon**; the keyword-rich remainder is carried by **`reader.subtitle`**. So write `title` as `"<short evocative phrase>: <keyword payoff>"` and set `reader.subtitle` to that payoff. There is **no** `metaTitle`. Do **not** add a `#` H1 in the body.
+- **`reader:` is the affirmations + writing** (the output contract — `structured-reader-skill.md`). **`faq:`** holds 2–4 PAA questions. There is **no `related:`** key — Related cards are auto-generated from the cluster map.
 - **`metaDescription` is a separate field from `excerpt`.** `excerpt` is the short on-page/card hook; `metaDescription` is the 150–160 char SERP line. Don't conflate them. (Several existing posts have a `metaDescription` truncated to ~100 chars — fix to a full 150–160 when you touch a post.)
 - **There IS a modified-date field: `lastEditedTime`.** It feeds JSON-LD `dateModified` and og:modifiedTime. Bump it when you update a post. `createdTime` feeds `datePublished`.
 - **`author`** is a real byline ("Ugo Charles"), not a faceless brand. See `eeat-signals-skill.md`.
 - There is **no `slug` field** (slug = filename), **no `status` field** (the file existing = published), and **no `relatedCategories`/`relatedPages`** — cross-links are inline Markdown links in the body.
-- **Canonical, OG, Twitter, `BlogPosting` JSON-LD, and `BreadcrumbList` JSON-LD are emitted automatically by the route. Do not hand-author them.** `FAQPage` and `HowTo` schema are **not** emitted — if a post would benefit, note it as an OPTIONAL future renderer enhancement; FAQs live in the body as prose, never in frontmatter. See `seo-and-schema-skill.md`.
+- **Canonical, OG, Twitter, `BlogPosting` JSON-LD, and `BreadcrumbList` JSON-LD are emitted automatically by the route. Do not hand-author them.** **`FAQPage` JSON-LD IS now emitted** when the `faq:` frontmatter list is present (the route builds it) — so FAQs live in **`faq:` frontmatter**, not the body. `HowTo` is still not emitted. See `seo-and-schema-skill.md`.
 
-### Body rules — plain Markdown only
+### Structured posts: where the pieces live (the `reader:` block)
 
-The body renders through the `MdxContent` component map, which styles only these elements: `h1, h2, h3, p, ul, ol, li, blockquote, hr, code, pre, a, img`. There are **no custom JSX components** (no `<AnswerBox>`, `<Callout>`, `<ProTip>`).
+For a structured post the body is a one-line pointer comment; the content lives in `reader:`. The structural elements the rest of this pack talks about map to `reader:` fields:
+
+- **Answer box** → `reader.opening.quote` (+ `opening.note`). Not a body blockquote.
+- **Framing intro** → `reader.intro[]` (the drop-cap prose).
+- **Each themed group** → a `reader.sections[]` entry: `keyword` (eyebrow) → `title` → `intro` (one framing line) → **`body[]` (the original depth prose — the differentiation)** → `whenToUse` → `quotes[]` (the affirmations) → `prompt` (reflection).
+- **The affirmations** → `sections[].quotes[]` as `{ text, author }`. Attribution: a verified real source or `"Anonymous"` — never `"AI-generated"` or a fabricated source (`structured-reader-skill.md`, `accuracy-and-trust-skill.md`).
+- **FAQ** → `faq:` frontmatter (emits `FAQPage`). **Cross-links** → auto Related cards (don't author them; reader prose is plain text and can't render inline links).
+
+All `reader:` prose fields are **plain text** — no Markdown, no inline links, no `#` headings (they'd render literally). See `structured-reader-skill.md`.
+
+### Legacy prose-fallback body rules (only for un-migrated posts)
+
+A post **without** a `reader:` block renders its Markdown body through the `MdxContent` component map, which styles only: `h1, h2, h3, p, ul, ol, li, blockquote, hr, code, pre, a, img`. There are **no custom JSX components** (no `<AnswerBox>`, `<Callout>`, `<ProTip>`). These rules apply to that fallback path; prefer migrating the post to `reader:` (see `structured-reader-skill.md` §Migration).
 
 - ❌ **No `#` H1 in the body.** The route renders the H1 from the frontmatter `title`, and the component map maps a body `#`/`h1` to an `<h2>` anyway. Use **`##`** for major sections and **`###`** for sub-sections. Never skip a level.
 - ✅ **The opening answer is a leading Markdown blockquote** (`> …`). The component map renders a blockquote as a left-bordered, italicized box — that IS the answer box. The first body block after the (optional) featured image is the **direct-answer blockquote**: 40–60 words saying what this set is for, roughly how many affirmations are inside, and how to use them. There is no `<AnswerBox>` component.
@@ -69,7 +105,7 @@ The body renders through the `MdxContent` component map, which styles only these
 - ✅ **Internal links** are inline Markdown links: `[morning affirmations](/blog/morning-affirmations-to-transform-your-day)`. Internal links (starting `/` or `#`) route through next/link automatically. Descriptive anchor text, never "click here". See `topical-authority-skill.md`.
 - ✅ **Images** are Markdown. Featured: frontmatter `featuredImage: "/blog/<slug>.webp"`. Inline: `![descriptive alt](/blog/<slug>-content-1.webp)`. Alt text is the Markdown alt (the renderer falls back to "Affirmation illustration"). Images render via next/image.
 
-**Deliverable shape every time:** one `.mdx` file — frontmatter at the top, body below — that renders through `lib/posts.ts` + the `MdxContent` component map cleanly. That file is what we ship.
+**Deliverable shape every time:** one `.mdx` file whose frontmatter carries a complete `reader:` block (+ `faq:`) and whose body is the pointer comment — it renders through `lib/posts.ts` + `<ScrollReader>` cleanly. That file is what we ship. (A legacy post still on the prose fallback ships as frontmatter + Markdown body until migrated.)
 
 ---
 
@@ -176,28 +212,28 @@ The content type determines structure, length, intent, and snippet eligibility. 
 
 ---
 
-## STEP 2 — Opening (the direct-answer blockquote)
+## STEP 2 — Opening (the answer + the framing)
 
-The opening has two jobs, in order:
+In a structured post the opening is split across two `reader:` fields:
 
-1. **Answer the query in 40–60 words**, inside a leading Markdown blockquote (`> …`). Tell the reader what this set is for, roughly how many affirmations are inside, and how to use them. Google's snippet bot scans the first ~155 chars; so does a skimming reader. Example: `> These 25 anxiety affirmations are short, calming phrases you can repeat when your mind is racing — at your desk, in the car, or at 2am. Read them slowly, breathe between each one, and keep the two or three that feel true today.`
-2. **Give a reason to keep reading**, then orient. A reader with the gist still wants the grouped list, the how-to-use, or the why-it-works. Place a relevant sibling link near the top where it helps.
+1. **`reader.opening.quote`** — the single orienting line (the "answer box"). One resonant sentence the reader sees first. `opening.note` adds one warm sentence (what this set is for / how to read it; a good home for the support-not-replace note on clinical topics).
+2. **`reader.intro[]`** — 1–2 short paragraphs of original framing prose (rendered with a drop cap): what these affirmations are, honestly what they do and don't do, and how the collection is grouped. The first ~155 chars still matter for the snippet, so front-load the keyword naturally here.
 
-For opening patterns by type + intent, see `BLOG-INTRO-SWIPE.md`.
+Keep it plain text (no Markdown/links). For opening patterns by type + intent, see `BLOG-INTRO-SWIPE.md`.
 
 ---
 
 ## STEP 3 — Heading skeleton
 
-Plan `##` sections before writing prose, from the type's skeleton in `page-structures-skill.md`. A good collection skeleton: what these affirmations are for → how to use them → the affirmations (grouped into 3–5 themed `##` sections) → why affirmations work (sourced) → tips → FAQ → CTA. A good practice-guide skeleton: what affirmations are → how to write one that works → a routine → example affirmations → FAQ → CTA.
+Plan your `reader.sections[]` before writing, from the type's skeleton in `page-structures-skill.md`. A good collection breaks the affirmations into **3–5 themed sections**, each a `reader.sections[]` entry with its own `keyword`, framing `intro`, original `body[]` prose, `whenToUse` note, `quotes[]`, and `prompt`. Order them as a believability ladder (gentler/grounding first). The "how to use" and "why it works" framing lives in `reader.intro[]` and the per-section `body[]`, not separate sections.
 
-Each `##` is phrased as the thing it delivers, never "Section 1". There are no auto heading IDs and no jump links — don't write `{#id}`. Codify the heading list before writing prose.
+Each section `title` is phrased as the thing it delivers, never "Section 1". Codify the section list (titles + keywords + the grouping logic) before writing the prose.
 
 ---
 
 ## STEP 4 — Transitions & rehooks (web style)
 
-Blogs rehook every 200–300 words via a *visual* event — sub-head, list, blockquote, inline image. On an affirmation post, **the grouped affirmation lists, the themed sub-headings, and the blockquote answer box are the scannability events.** A wall of prose with no list is a bounce. See `engagement-mechanics-skill.md`.
+Blogs rehook every 200–300 words via a *visual* event. In the Scroll reader **the section eyebrows + titles, the standalone affirmation "bands", the opening quote, and the tinted reflection prompts are the scannability events** — the reader is designed so no group runs long without one. Keep each `section.body[]` to 1–2 tight paragraphs so the affirmations arrive before the reader tires. See `engagement-mechanics-skill.md`.
 
 Between paragraphs use the but/therefore rule. "And then" is contraband. Every transition is a contrast (but, however), a consequence (therefore, so), or a question.
 
@@ -210,19 +246,19 @@ For every affirmation and every load-bearing claim, craft and sourcing matter. S
 - **Every affirmation is well-formed.** Present tense, first person, positively framed, believable for the reader's starting point. Offer a "ladder" version ("I am learning to…") where a bold claim would feel false. See `affirmation-craft-skill.md`.
 - **Cite load-bearing claims** to a reputable source: peer-reviewed psychology or a university/.gov page for the science, a reputable Bible source (with the translation named) for scripture. "Self-affirmation theory suggests reflecting on your values can buffer stress" with a citation beats a bare "affirmations rewire your brain."
 - **Correct terminology.** Affirmation vs. mantra vs. declaration vs. incantation; what self-affirmation theory actually claims; how to frame manifestation / Law of Attraction honestly. See `affirmation-craft-skill.md`.
-- **Internal links** to 3–6 sibling posts in the same cluster. See `topical-authority-skill.md`.
+- **Internal links** — in a structured post, sibling cross-links are the **auto Related cards** (computed from the cluster map; don't author them, and don't put literal `[text](/url)` in `reader:` prose — it renders as text). On a legacy prose-fallback post, weave 3–6 inline sibling links into the body. See `topical-authority-skill.md`.
 
 ---
 
-## STEP 6 — Conclusion + CTA + FAQ section
+## STEP 6 — Close + FAQ (structured)
 
-The conclusion has three jobs:
+In a structured post the close is handled by the reader, not a body section:
 
-1. **Synthesis.** Re-anchor the one practical takeaway (how to actually use these — pick two or three, repeat them daily, say them out loud). Not a recap.
-2. **One action: a related affirmation post.** "If mornings are your hardest part, the [morning affirmations](/blog/morning-affirmations-to-transform-your-day) are a gentle place to start." Never two CTAs.
-3. **FAQ section in the body.** Add a `## Frequently asked questions` section with 2–4 `###` questions drawn from People-Also-Ask. This lives in the body as prose, not frontmatter. It does **not** emit FAQPage schema (that is an optional future enhancement), though the page already ships `BlogPosting` + `BreadcrumbList` JSON-LD automatically. See `featured-snippet-skill.md`.
+1. **Synthesis** lives in the **last section's `prompt`** (or the final `body` paragraph): re-anchor the one practical takeaway — pick two or three, repeat them daily, say them out loud. Not a recap.
+2. **The "next step" is the auto Related cards** — three sibling collections the route computes from the cluster map. There's no hand-authored CTA line and no second CTA to manage.
+3. **FAQ** is the **`faq:` frontmatter list** — 2–4 `q:`/`a:` pairs drawn from People-Also-Ask. The reader renders it as "Questions, gently answered" **and the route emits `FAQPage` JSON-LD**. See `featured-snippet-skill.md`.
 
-Full templates in `conclusion-and-cta-skill.md`.
+Full templates in `conclusion-and-cta-skill.md` (the synthesis/voice still apply; only the placement moved into `reader:`/`faq:`).
 
 ---
 
@@ -231,21 +267,20 @@ Full templates in `conclusion-and-cta-skill.md`.
 Before finalizing every post:
 
 ### Frontmatter:
-- [ ] `title` front-loads the keyword, ≤ ~60 chars of the part that must survive in the SERP (it is the H1, `<title>`, og:title, JSON-LD headline)
+- [ ] `title` carries the full keyword (≤ ~60 chars), written `"<short phrase>: <keyword payoff>"` (H1 = the pre-colon part); `reader.subtitle` carries the payoff
 - [ ] `excerpt` is a short 1–2 sentence hook; `metaDescription` is a separate 150–160 char field (don't conflate them)
 - [ ] `author: "Ugo Charles"`, `tags` (1–4), `readingTime`, `createdTime`, `lastEditedTime` set
-- [ ] `featuredImage` set to the real `/blog/<slug>.webp` path if the image exists, else omitted
-- [ ] No invented fields (no `slug`, `status`, `metaTitle`, `category`, `relatedCategories`)
+- [ ] `featuredImage` set to the real `/blog/<slug>.webp` path if it exists (OG/social only), else omitted
+- [ ] `faq:` present (2–4 PAA pairs); no invented fields (no `slug`, `status`, `metaTitle`, `category`, `related`)
 
-### Body:
-- [ ] Body starts with content (often the featured image), then the direct-answer blockquote; a sibling link is near the top where it helps
-- [ ] No `#` H1 anywhere in the body (the `title` is the H1); sections use `##` → `###`, no skips
-- [ ] Affirmations are first-person, present-tense list items, grouped into themed sections
-- [ ] No `{#id}` anchors / no `#heading` jump-link promises; no `$…$` math
-- [ ] Tables only where genuinely tabular (GFM renders, but prose/lists usually read better)
-- [ ] FAQs are a `## Frequently asked questions` body section, not frontmatter
-- [ ] No semicolons, no stray ellipses, em dashes not used as a crutch
-- [ ] No bracketed YouTube notation; no trailing meta commentary
+### Reader block (`structured-reader-skill.md`):
+- [ ] `reader:` valid: `tag`, `subtitle`, `opening.quote` (+ `note`), `intro[]`, and ≥1 `section`
+- [ ] **Every section has a non-empty `body[]`** (original depth prose — the anti-thin-content differentiation), plus `keyword`, `intro`, `whenToUse`, and a `prompt`
+- [ ] Affirmations are first-person, present-tense `quotes[]`, grouped into themed sections; a strong `"Anonymous"` line may lead
+- [ ] Every `quote.author` is a **verified real source or `"Anonymous"`** — never `"AI-generated"`, never a fabricated source/credential; no false provenance claims in the prose
+- [ ] All `reader:` prose fields are plain text (no Markdown/links/headings); no `related:` authored (auto)
+- [ ] Markdown body is the one-line pointer comment, not a duplicate of the affirmations
+- [ ] No semicolons, no stray ellipses, em dashes not used as a crutch; no bracketed YouTube notation
 
 ### Affirmation craft & terminology:
 - [ ] Every affirmation present tense, first person, positively framed, believable; "ladder" versions offered where needed
@@ -263,9 +298,9 @@ Before finalizing every post:
 - [ ] On-theme featured image with descriptive alt text
 
 ### SEO:
-- [ ] Target query in: `title`, the answer blockquote, the first 100 words, one `##`, the slug (filename), image alt, and `metaDescription`
-- [ ] 3–6 internal links to siblings in the same cluster
-- [ ] FAQ section answers 2–4 People-Also-Ask queries
+- [ ] Target query in: `title`, `reader.subtitle`, `opening.quote`/`intro` (first ~100 words), at least one `sections[].keyword`, the slug (filename), and `metaDescription`
+- [ ] Cross-links handled by the auto Related cards (cluster map); no faked inline links in `reader:` prose
+- [ ] `faq:` answers 2–4 People-Also-Ask queries (emits `FAQPage`)
 
 ### Word count (vs type target):
 - [ ] Within ±20% of the type's target range (see `page-structures-skill.md`)
@@ -277,7 +312,7 @@ Before finalizing every post:
 After generating any post, the writer MUST run the re-audit before outputting.
 
 ### Re-audit process
-1. Generate the complete `.mdx` draft (frontmatter + body).
+1. Generate the complete `.mdx` draft (frontmatter incl. the `reader:` block + `faq:`, body = pointer comment).
 2. STOP — do not output yet.
 3. Scan against the Quality Checklist above.
 4. Fix every violation.
@@ -286,18 +321,17 @@ After generating any post, the writer MUST run the re-audit before outputting.
 
 ### Re-audit checklist (run automatically)
 
-**Frontmatter scan:** all fields present and correctly named (`title`, `excerpt`, `metaDescription`, `author`, `tags`, `readingTime`, `createdTime`, `lastEditedTime`, `featuredImage`); `metaDescription` 150–160 chars; no invented fields (no `slug`, `status`, `metaTitle`, `category`).
+**Frontmatter scan:** all fields present and correctly named (`title`, `excerpt`, `metaDescription`, `author`, `tags`, `readingTime`, `createdTime`, `lastEditedTime`, `featuredImage`, `faq`, `reader`); `metaDescription` 150–160 chars; no invented fields (no `slug`, `status`, `metaTitle`, `category`, `related`).
 
-**Body scan:**
-- Search for `# ` at line start → remove (the H1 comes from `title`; a body `#` renders as an h2 anyway). Use `##`/`###`.
-- Search for `{#` → remove (no auto IDs; the literal text would render).
-- Search for `$` math delimiters → rewrite as plain text.
-- Search for raw JSX tags (`<SomeComponent`) → remove (no custom components in the map).
-- Search for `;` → split into two sentences. Search for stray `...` → fix.
-- Search for AI crutch phrases ("Here's the thing:", "The bottom line:", "Let that sink in", "Powerful", "Life-changing", "Game-changing") → patch.
-- Search for "Most [people/beginners]" at sentence start → rewrite.
-- Search for `[B-ROLL:|VISUAL:|PAUSE|NARRATOR:]` → remove.
-- Confirm a `## Frequently asked questions` section exists where the type calls for it.
+**Reader scan (`structured-reader-skill.md`):**
+- `reader:` parses and has `tag`, `subtitle`, `opening.quote`, `intro[]`, ≥1 `section` with `title` + ≥1 `quote`.
+- **Every section has a non-empty `body[]`** of genuine original prose — flag any section that is just a list (thin-content fail).
+- Every `quote.author` ∈ {verified real source, `"Anonymous"`} — search the draft for `"AI-generated"`, invented names, "Adapted from <real author>", and pseudo-sources ("songwriter", "song lyric", "Meditation teaching", "Unknown") → fix to a verified source or `"Anonymous"`. Search prose for false provenance claims ("from songs/poets/interviews") and fabricated credentials → fix.
+- `reader:` prose is plain text — search for `[`…`](`, `**`, `# ` inside reader strings → strip (renders literally).
+- Search reader prose for AI crutch phrases ("Here's the thing:", "The bottom line:", "Let that sink in", "Powerful", "Life-changing", "Game-changing") and "Most [people/beginners]" openings → patch. Search for `;`/stray `...` → fix.
+- `subtitle` carries the keyword; `faq:` has 2–4 pairs; no `related:`; body is the pointer comment (not a duplicate of the affirmations).
+
+**Legacy prose-fallback body scan (only if no `reader:` block):** `# ` at line start → use `##`/`###`; `{#` → remove; `$` math → plain text; raw JSX → remove; `;`/`...` → fix; AI crutch phrases / "Most…" → patch; `[B-ROLL:|VISUAL:|PAUSE|NARRATOR:]` → remove; confirm a `## Frequently asked questions` section.
 
 **Affirmation & terminology scan:** every affirmation present tense / first person / positively framed / believable; affirmation-vs-mantra-vs-manifestation terms correct and consistent.
 
@@ -367,7 +401,7 @@ There are optional `/blog`, `/b-write`, and `/b-review` slash commands under `.c
 1. Load this pack into context.
 2. Pick a topic/keyword and identify the content type.
 3. Run the Pass 1 grounding gather (WebSearch SERP/PAA + verify science/scripture).
-4. Draft the post as plain-Markdown MDX (frontmatter + body).
+4. Draft the post as a structured `reader:` block (+ `faq:`) in the frontmatter; body = pointer comment. See `structured-reader-skill.md`.
 5. Run the Pass 2 affirmation + fact verification gate.
 6. Run the mandatory re-audit and write content/posts/<slug>.mdx + output the audit.
 ```
@@ -381,7 +415,7 @@ The commands wrap this: `/blog` loads the pack, `/b-write <topic>` gathers + dra
 3. Run the Pass 1 grounding gather (WebSearch/WebFetch) and collect real queries, the PAA, and any science/scripture sources.
 4. Verify the brief is real (a way to make it non-generic, sources named), not guesses.
 5. Plan the `##`/`###` skeleton.
-6. Draft per pack rules as plain-Markdown MDX, with well-formed affirmations.
+6. Draft per pack rules as a structured `reader:` block (+ `faq:`), with original per-section writing and well-formed affirmations (`structured-reader-skill.md`).
 7. Run the affirmation + fact verification pass (the hard gate).
 8. Patch inline (literal swaps only).
 9. Run the mandatory re-audit.
