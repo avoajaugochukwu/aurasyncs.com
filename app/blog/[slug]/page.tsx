@@ -1,104 +1,140 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { notFound } from 'next/navigation';
-import { fetchBySlug, fetchPageBlocks, fetchPages } from '@/lib/notion';
-import { NotionRenderer } from '@/components/NotionRenderer'; // We'll create this basic renderer
+import Link from 'next/link';
+import { getAllSlugs, getPostBySlug } from '@/lib/posts';
+import { MdxContent } from '@/components/MdxContent';
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { baseUrl } from '@/app/metadata';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 type BlogPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-// Optional: Generate static paths at build time
-// export async function generateStaticParams() {
-//   const pages = await fetchPages(); // Assuming fetchPages gets all slugs
-//   return pages.map((page: any) => ({
-//     slug: page.properties.Slug?.rich_text[0]?.plain_text || page.id,
-//   }));
-// }
+// The full set of posts is known at build time, so any other slug is a true 404
+// (not a soft-404 with a 200 status).
+export const dynamicParams = false;
 
-export async function generateStaticParams() {
-  const pages = await fetchPages();
-  return pages.map((page: any) => ({
-    slug: page.properties.Slug.rich_text[0].plain_text,
-  }));
+export function generateStaticParams() {
+  return getAllSlugs().map((slug) => ({ slug }));
 }
 
 /**
  * Generate metadata for the blog post
- * @param params - The parameters of the blog post
- * @returns The metadata for the blog post
  */
 export async function generateMetadata({ params }: BlogPageProps): Promise<Metadata> {
-  const slug = (await params).slug;
-  const page = await fetchBySlug(slug);
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
 
-  const post = page as any;
+  if (!post) return {};
+
+  const url = `${baseUrl}/blog/${slug}`;
+  const description = post.metaDescription || post.excerpt;
+  const images = post.featuredImage
+    ? [{ url: post.featuredImage, width: 1200, height: 800, alt: post.title }]
+    : undefined;
 
   return {
-    title: post?.properties?.Title?.title?.[0]?.plain_text,
-    description: post?.properties?.["Meta Description"]?.rich_text?.[0]?.plain_text,
-    openGraph: {
-      title: post?.properties?.Title?.title?.[0]?.plain_text,
-      description: post?.properties?.["Meta Description"]?.rich_text?.[0]?.plain_text,
-      type: 'article',
-      // you can add more OpenGraph metadata here
-    },
-    robots: {
-      index: true, // Allow indexing
-      follow: true, // Allow following links
-    },
+    title: post.title,
+    description,
     alternates: {
-      canonical: `${baseUrl}/blog/${slug}`,
+      canonical: url,
       languages: {
-        'en-US': `${baseUrl}/blog/${slug}`,
-        'x-default': `${baseUrl}/blog/${slug}`
+        'en-US': url,
+        'x-default': url,
       },
     },
-  }
+    openGraph: {
+      title: post.title,
+      description,
+      url,
+      type: 'article',
+      publishedTime: post.createdTime,
+      modifiedTime: post.lastEditedTime,
+      authors: [post.author],
+      tags: post.tags,
+      images,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description,
+      images: post.featuredImage ? [post.featuredImage] : undefined,
+    },
+  };
 }
 
 export default async function BlogPage({ params }: BlogPageProps) {
   const { slug } = await params;
-  const page = await fetchBySlug(slug);
+  const post = getPostBySlug(slug);
 
-  if (!page) {
-    notFound(); // Trigger 404 if page not found
+  if (!post) {
+    notFound();
   }
 
-  const blocks = await fetchPageBlocks(page.id);
+  const url = `${baseUrl}/blog/${slug}`;
+  const formattedDate = format(new Date(post.createdTime), 'MMMM d, yyyy');
+  const readingTime = `${post.readingTime} min read`;
+  const imageAbsolute = post.featuredImage ? `${baseUrl}${post.featuredImage}` : undefined;
 
-  // Extract metadata (similar to index page, adjust as needed)
-  const pageProps = page.properties as any; // Use 'as any' for simplicity here, or define a stricter type
-  const title = pageProps.Title?.title[0]?.plain_text || 'Untitled Post';
-  const dateStr = pageProps.Created?.created_time || new Date().toISOString();
-  const formattedDate = format(new Date(dateStr), 'MMMM d, yyyy');
-  const readingTime = `${pageProps.ReadingTime?.number || 5} min read`;
-  const tags = pageProps.Tags?.multi_select?.map((tag: any) => tag.name) || [];
-  const author = pageProps.Author?.select?.name || 'Ugo Charles';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.metaDescription || post.excerpt,
+    image: imageAbsolute ? [imageAbsolute] : undefined,
+    datePublished: post.createdTime,
+    dateModified: post.lastEditedTime,
+    author: { '@type': 'Person', name: post.author },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Aurasyncs.com',
+      logo: { '@type': 'ImageObject', url: `${baseUrl}/logo.png` },
+    },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    keywords: post.tags.join(', '),
+  };
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
+      { '@type': 'ListItem', position: 2, name: 'Affirmations', item: `${baseUrl}/blog` },
+      { '@type': 'ListItem', position: 3, name: post.title, item: url },
+    ],
+  };
 
   return (
     <article className="container mx-auto px-4 py-12 max-w-3xl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+
+      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-6">
+        <Link href="/" className="hover:text-primary">Home</Link>
+        <span className="mx-2">/</span>
+        <Link href="/blog" className="hover:text-primary">Affirmations</Link>
+      </nav>
+
       <header className="mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">{title}</h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">{post.title}</h1>
         <div className="text-muted-foreground text-sm mb-4">
-          <span>{formattedDate}</span> · <span>{readingTime}</span> · <span>By {author}</span>
+          <span>{formattedDate}</span> · <span>{readingTime}</span> · <span>By {post.author}</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {tags.map((tag: any) => (
+          {post.tags.map((tag) => (
             <Badge key={tag} variant="secondary">{tag}</Badge>
           ))}
         </div>
       </header>
 
-      {/* Render Notion Blocks */}
-      <NotionRenderer blocks={blocks} blogSlug={slug} />
-
+      <MdxContent source={post.content} />
     </article>
   );
 }
-
-// Optional: Add revalidation
-// export const revalidate = 60; 

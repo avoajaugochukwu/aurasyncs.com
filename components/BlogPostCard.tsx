@@ -6,14 +6,6 @@ import Image from 'next/image';
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
-// Helper function to create safe filenames for images
-function getSafeSlug(slug: string): string {
-  return slug
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-}
-
 // Define the expected props for the card
 interface BlogPostCardProps {
   post: {
@@ -25,13 +17,16 @@ interface BlogPostCardProps {
     readingTime: string;
     tags: string[];
     author: string;
-    featuredImageUrl?: string; 
+    featuredImage?: string | null;
   };
+  /** Prioritize loading for above-the-fold cards only. */
+  priority?: boolean;
 }
 
-export function BlogPostCard({ post }: BlogPostCardProps) {
+export function BlogPostCard({ post, priority = false }: BlogPostCardProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  
+  const imageSrc = post.featuredImage || 'https://placehold.co/600x400';
+
   return (
     <Link href={`/blog/${post.slug}`} className="block h-full">
       <Card className="overflow-hidden h-full flex flex-col group hover:shadow-md transition-all duration-300">
@@ -42,12 +37,13 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
             </div>
           )}
           <Image
-            src={`/blog/${getSafeSlug(post.slug)}.webp`}
-            alt={post.title}
+            src={imageSrc}
+            alt={`Featured image for ${post.title}`}
             width={600}
             height={400}
             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
-            priority
+            priority={priority}
+            loading={priority ? undefined : 'lazy'}
             onLoad={() => setIsLoading(false)}
             onError={(e) => {
               e.currentTarget.src = 'https://placehold.co/600x400';
@@ -55,7 +51,7 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
             }}
           />
         </div>
-        
+
         <div className="p-5 flex flex-col flex-grow">
           <div className="flex flex-wrap gap-2 mb-3">
             {post.tags.slice(0, 3).map(tag => (
@@ -64,15 +60,15 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
               </Badge>
             ))}
           </div>
-          
+
           <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
             {post.title}
           </h3>
-          
+
           <p className="text-muted-foreground text-sm mb-3 line-clamp-3">
             {post.excerpt}
           </p>
-          
+
           <div className="text-xs text-muted-foreground mt-auto flex justify-between">
             <span>{post.formattedDate}</span>
             <span>{post.readingTime}</span>
@@ -81,4 +77,4 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
       </Card>
     </Link>
   );
-} 
+}

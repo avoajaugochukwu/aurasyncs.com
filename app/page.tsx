@@ -1,43 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { fetchPages } from "@/lib/notion";
+import { getAllPosts } from "@/lib/posts";
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { BlogPostCard } from "@/components/BlogPostCard";
 
-export default async function Home() {
-  const pages = await fetchPages();
-
-  if (!pages || pages.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center text-muted-foreground">No posts found</div>
-      </div>
-    );
-  }
-
-  const posts = pages.map((page: any) => {
-    const dateStr = page.properties.Created?.created_time || new Date().toISOString();
-
-    // Extract author names from multi-select
-    const authorMultiSelect = page.properties.Author?.multi_select;
-    let authorNames = 'Aurasyncs Team'; // Default author
-    if (authorMultiSelect && authorMultiSelect.length > 0) {
-      // Map over the array and get the name of each selected author
-      authorNames = authorMultiSelect.map((author: any) => author.name).join(', ');
-    }
-
-    return {
-      id: page.id,
-      title: page.properties.Title?.title[0]?.plain_text || 'Untitled Post',
-      slug: page.properties.Slug?.rich_text[0]?.plain_text || page.id,
-      excerpt: page.properties.Excerpt?.rich_text[0]?.plain_text || 'No excerpt available.',
-      formattedDate: format(new Date(dateStr), 'MMM d, yyyy'),
-      featuredImageUrl: page.properties["Featured Image"]?.files,
-      author: authorNames,
-      readingTime: `${page.properties.ReadingTime?.number || 5} min read`,
-      tags: page.properties.Tags?.multi_select?.map((tag: any) => tag.name) || []
-    };
-  }).sort((a, b) => new Date(b.formattedDate).getTime() - new Date(a.formattedDate).getTime());
+export default function Home() {
+  const posts = getAllPosts()
+    .slice(0, 6)
+    .map((post) => ({
+      id: post.slug,
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt || 'No excerpt available.',
+      formattedDate: format(new Date(post.createdTime), 'MMM d, yyyy'),
+      featuredImage: post.featuredImage,
+      author: post.author,
+      readingTime: `${post.readingTime} min read`,
+      tags: post.tags,
+    }));
 
   return (
     <div className="container mx-auto px-4 py-16 md:py-20 lg:py-24">
@@ -60,8 +39,8 @@ export default async function Home() {
         </h2>
         {posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {posts.map((post) => (
-              <BlogPostCard key={post.id} post={post} />
+            {posts.map((post, i) => (
+              <BlogPostCard key={post.id} post={post} priority={i < 3} />
             ))}
           </div>
         ) : (

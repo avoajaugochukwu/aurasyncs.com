@@ -21,38 +21,24 @@ export const metadata: Metadata = {
     description: "Aurasyncs offers daily affirmations to elevate your mind, boost confidence, and manifest positivity. Empower your life with self-affirmations!",
     url: baseUrl,
     siteName: "Aurasyncs.com",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-      },
-    ],
     locale: "en_US",
     type: "website",
+    // og:image is provided automatically by app/opengraph-image.tsx
   },
   twitter: {
     card: "summary_large_image",
     title: "Aurasyncs.com - Daily Affirmations to Elevate Your Mind",
     description: "Aurasyncs offers daily affirmations to elevate your mind, boost confidence, and manifest positivity. Empower your life with self-affirmations!",
-    images: ["/og-image.png"],
+    // twitter image is derived from app/opengraph-image.tsx
   },
   robots: {
-    index: true, // Allow indexing
-    follow: true, // Allow following links
+    index: true,
+    follow: true,
   },
-  verification: {
-    google: "google-site-verification: 63EE4WX9NK",
-  },
-  icons: {
-    icon: "favicon_io/favicon.ico",
-    apple: "favicon_io/apple-touch-icon.png",
-    other: {
-      rel: "icon",
-      url: "favicon_io/favicon.ico",
-    },
-    shortcut: "favicon_io/favicon.ico",
-  }
+  // Search Console is verified at the domain level (DNS / linked GA4 property),
+  // and analytics runs via GA4 (<GoogleAnalytics gaId="G-QNX4KVJTK5" /> in layout.tsx),
+  // so no google-site-verification meta tag is needed here.
+  // Icons are auto-detected from app/favicon.ico, app/icon.png and app/apple-icon.png
 };
 
 export const jsonLd = {
@@ -61,14 +47,6 @@ export const jsonLd = {
   name: 'Aurasyncs.com',
   description: 'Aurasyncs offers daily affirmations to elevate your mind, boost confidence, and manifest positivity. Empower your life with self-affirmations!',
   url: baseUrl,
-  // potentialAction: {
-  //   '@type': 'SearchAction',
-  //   target: {
-  //     '@type': 'EntryPoint',
-  //     urlTemplate: `${baseUrl}/blog?q={search_term_string}`
-  //   },
-  //   'query-input': 'required name=search_term_string'
-  // },
   publisher: {
     '@type': 'Organization',
     name: 'Aurasyncs.com',
