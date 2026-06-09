@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getAllSlugs, getPostBySlug } from '@/lib/posts';
+import { getAllPosts, getAllSlugs, getPostBySlug } from '@/lib/posts';
+import { getRelatedPosts } from '@/lib/clusters';
 import { MdxContent } from '@/components/MdxContent';
+import { RelatedPosts } from '@/components/RelatedPosts';
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { baseUrl } from '@/app/metadata';
@@ -105,6 +107,21 @@ export default async function BlogPage({ params }: BlogPageProps) {
     ],
   };
 
+  const faqLd =
+    post.faq.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: post.faq.map((item) => ({
+            '@type': 'Question',
+            name: item.q,
+            acceptedAnswer: { '@type': 'Answer', text: item.a },
+          })),
+        }
+      : null;
+
+  const related = getRelatedPosts(post, getAllPosts());
+
   return (
     <article className="container mx-auto px-4 py-12 max-w-3xl">
       <script
@@ -115,6 +132,12 @@ export default async function BlogPage({ params }: BlogPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      {faqLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+      )}
 
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground mb-6">
         <Link href="/" className="hover:text-primary">Home</Link>
@@ -135,6 +158,22 @@ export default async function BlogPage({ params }: BlogPageProps) {
       </header>
 
       <MdxContent source={post.content} />
+
+      {post.faq.length > 0 && (
+        <section className="mt-16 border-t pt-8" aria-label="Frequently asked questions">
+          <h2 className="text-2xl font-bold mb-6">Frequently asked questions</h2>
+          <div className="space-y-6">
+            {post.faq.map((item) => (
+              <div key={item.q}>
+                <h3 className="text-lg font-semibold mb-2">{item.q}</h3>
+                <p className="text-foreground/90 leading-7">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <RelatedPosts posts={related} />
     </article>
   );
 }

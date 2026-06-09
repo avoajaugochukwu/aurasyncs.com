@@ -4,6 +4,8 @@ import path from 'node:path';
 import React from 'react';
 import matter from 'gray-matter';
 
+export type FaqItem = { q: string; a: string };
+
 export type Post = {
   slug: string;
   title: string;
@@ -15,9 +17,18 @@ export type Post = {
   createdTime: string;
   lastEditedTime: string;
   featuredImage: string | null;
+  /** Optional FAQ pairs (frontmatter `faq:`) used for an on-page FAQ + FAQPage schema. */
+  faq: FaqItem[];
   /** Raw MDX body (without frontmatter). */
   content: string;
 };
+
+function parseFaq(raw: unknown): FaqItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item) => ({ q: String(item?.q ?? '').trim(), a: String(item?.a ?? '').trim() }))
+    .filter((item) => item.q && item.a);
+}
 
 const POSTS_DIR = path.join(process.cwd(), 'content', 'posts');
 
@@ -36,6 +47,7 @@ function readPostFile(slug: string): Post | undefined {
     createdTime: data.createdTime ?? new Date(0).toISOString(),
     lastEditedTime: data.lastEditedTime ?? data.createdTime ?? new Date(0).toISOString(),
     featuredImage: data.featuredImage ?? null,
+    faq: parseFaq(data.faq),
     content,
   };
 }
