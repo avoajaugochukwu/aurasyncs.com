@@ -1,6 +1,6 @@
 # Journaling & Prompts — content track
 
-> **Status (2026-06-09):** Hub + all 6 spokes shipped as structured `reader:` posts (posts 1–7 below). Internal linking wired in `lib/clusters.ts` (new `journaling` cluster + `getRelatedPosts` pulls the hub onto every spoke; topical spokes still cross-link to their affirmations sibling). **Post 8 — the printable affirmation-cards lead magnet — is the only item left.**
+> **Status (2026-06-09):** Hub + all 6 spokes shipped as structured `reader:` posts (posts 1–7 below). **They live in their own `/journal` section, NOT under `/blog`** — content in `content/journal/*.mdx`, loader `lib/journal.ts`, routes `app/journal/page.tsx` (landing) + `app/journal/[slug]/page.tsx` (detail, reuses `ScrollReader`). Cross-linking is explicit (not cluster-based): `AFFIRMATION_SIBLING` map in `lib/journal.ts` links each spoke up to the hub and across to its `/blog` affirmations post; old `/blog/<slug>` URLs 301 → `/journal/<slug>` (`next.config.js`). Header has a Journal nav link; sitemap includes the section. **Post 8 — the printable affirmation-cards lead magnet — is the only item left.**
 
 New track added 2026-06-09. Same audience as our affirmations, mostly **KD 0**, and printables double as **Pinterest pins + email lead magnets** (our highest-leverage channel). See **[writing-brief.md](./writing-brief.md)** for voice + MDX format; pull posts from this file in the order below.
 
