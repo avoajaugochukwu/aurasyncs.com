@@ -114,6 +114,8 @@ A("### Files in this folder")
 A("- **plan.md** (this file) — the prioritized keyword queue, tiered easy → hard.")
 A("- **[new-posts.md](./new-posts.md)** — ready-to-write briefs for each 🆕 NEW keyword "
   "(suggested slug, primary + secondary keywords to target in one post).")
+A("- **[journaling.md](./journaling.md)** — the **Journaling & Prompts** track (hub-and-"
+  "spoke plan around `journal prompts`, 49.5K/mo KD 5, + printable lead magnets).")
 A("- **[writing-brief.md](./writing-brief.md)** — the voice + MDX format contract the "
   "writing agent must follow (where to save, frontmatter, structure, internal linking).")
 A("- Background: full metrics + raw fanout data in `../research/keyword-fanout/`.")
@@ -206,6 +208,7 @@ A("")
 A("| Date | Added | Notes |")
 A("|------|-------|-------|")
 A("| 2026-06-08 | Initial fanout: 25 pillars, 3,018 keywords | DataForSEO + Apify autocomplete |")
+A("| 2026-06-09 | Added Journaling & Prompts track (`journaling.md`) | journal/prompt/printable seeds; anchor `journal prompts` 49.5K KD 5 |")
 A("")
 
 os.makedirs(OUT_DIR, exist_ok=True)

@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { CopyButton, useCopied } from "@/components/reader/CopyButton";
-import type { Moods, MoodKey } from "@/lib/daily";
+import { randomMoodEntry } from "@/lib/moods-client";
+import type { MoodKey } from "@/lib/daily";
 
 type HubTodayProps = {
   dateLabel: string;
   affirmation: string;
   todaySlug: string;
-  moods: Moods;
   moodList: { key: MoodKey; label: string }[];
 };
 
@@ -17,18 +17,14 @@ type HubTodayProps = {
  * The hub's featured card — today's line, plus the mood picker surfaced up front
  * so it's obvious you can tap a mood for a random line. Links into the full reader.
  */
-export function HubToday({ dateLabel, affirmation, todaySlug, moods, moodList }: HubTodayProps) {
+export function HubToday({ dateLabel, affirmation, todaySlug, moodList }: HubTodayProps) {
   const [copiedKey, copy] = useCopied();
   const [mood, setMood] = useState<MoodKey | null>(null);
   const [line, setLine] = useState(affirmation);
 
-  const pickMood = (key: MoodKey) => {
-    const pool = moods[key] ?? [];
-    if (pool.length === 0) return;
-    let next = pool[Math.floor(Math.random() * pool.length)];
-    for (let i = 0; i < 4 && next.affirmation === line && pool.length > 1; i++) {
-      next = pool[Math.floor(Math.random() * pool.length)];
-    }
+  const pickMood = async (key: MoodKey) => {
+    const next = await randomMoodEntry(key, line);
+    if (!next) return;
     setMood(key);
     setLine(next.affirmation);
   };

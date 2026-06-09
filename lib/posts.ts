@@ -118,10 +118,13 @@ function parseReader(raw: unknown): Reader | null {
 
 const POSTS_DIR = path.join(process.cwd(), 'content', 'posts');
 
-function readPostFile(slug: string): Post | undefined {
-  const file = path.join(POSTS_DIR, `${slug}.mdx`);
-  if (!fs.existsSync(file)) return undefined;
-  const { data, content } = matter(fs.readFileSync(file, 'utf-8'));
+/**
+ * Parse one MDX file's frontmatter + body into a Post. Exported so other content
+ * sections (e.g. the journal at `content/journal/`) can reuse the exact same
+ * frontmatter contract and reader parsing instead of duplicating it.
+ */
+export function parsePostFile(slug: string, raw: string): Post {
+  const { data, content } = matter(raw);
   return {
     slug,
     title: data.title ?? 'Untitled Post',
@@ -137,6 +140,12 @@ function readPostFile(slug: string): Post | undefined {
     reader: parseReader(data.reader),
     content,
   };
+}
+
+function readPostFile(slug: string): Post | undefined {
+  const file = path.join(POSTS_DIR, `${slug}.mdx`);
+  if (!fs.existsSync(file)) return undefined;
+  return parsePostFile(slug, fs.readFileSync(file, 'utf-8'));
 }
 
 export const getAllPosts = React.cache((): Post[] => {

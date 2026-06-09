@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CopyButton, useCopied } from "@/components/reader/CopyButton";
-import type { Moods, MoodKey, MoodEntry } from "@/lib/daily";
+import { randomMoodEntry } from "@/lib/moods-client";
+import type { MoodKey, MoodEntry } from "@/lib/daily";
 
 export type RelatedLink = { title: string; excerpt: string; slug: string; clusterLabel: string };
 
@@ -17,7 +18,6 @@ type DailyReaderProps = {
   total: number;
   prevHref: string;
   nextHref: string;
-  moods: Moods;
   moodList: { key: MoodKey; label: string }[];
   /** The date's reflection block (shown when no mood is active). */
   reflection: string;
@@ -41,7 +41,6 @@ export function DailyReader({
   total,
   prevHref,
   nextHref,
-  moods,
   moodList,
   reflection,
   practice,
@@ -74,13 +73,9 @@ export function DailyReader({
     return () => window.removeEventListener("keydown", onKey);
   }, [router, prevHref, nextHref]);
 
-  const pickMood = (key: MoodKey) => {
-    const pool = moods[key] ?? [];
-    if (pool.length === 0) return;
-    let next = pool[Math.floor(Math.random() * pool.length)];
-    for (let i = 0; i < 4 && next.affirmation === line && pool.length > 1; i++) {
-      next = pool[Math.floor(Math.random() * pool.length)];
-    }
+  const pickMood = async (key: MoodKey) => {
+    const next = await randomMoodEntry(key, line);
+    if (!next) return;
     setDir(1);
     setMood(key);
     setPicked(next);
@@ -101,7 +96,7 @@ export function DailyReader({
           <Link className="focus-zone focus-zone-prev" href={prevHref} prefetch scroll={false} aria-label="Previous day" />
           <Link className="focus-zone focus-zone-next" href={nextHref} prefetch scroll={false} aria-label="Next day" />
           <figure className={"focus-quote " + (dir > 0 ? "anim-fwd" : "anim-back")} key={line}>
-            <blockquote className="focus-text">{line}</blockquote>
+            <h1 className="focus-text">{line}</h1>
           </figure>
         </div>
 

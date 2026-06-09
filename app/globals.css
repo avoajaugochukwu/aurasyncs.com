@@ -110,6 +110,7 @@ a { color: inherit; }
 
 /* --- site chrome --- */
 .site-head {
+  position: relative;     /* anchor for the drop-down search bar */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -815,3 +816,180 @@ a { color: inherit; }
 .doc-body strong { color: var(--ink); font-weight: 600; }
 .doc-body a { color: var(--clay); text-decoration: none; border-bottom: 1px solid var(--clay-soft); }
 .doc-body a:hover { color: var(--ink); }
+
+/* ── Search ──────────────────────────────────────────────────────────── */
+/* Header search — a quiet icon button (matches the theme toggle) that drops a
+   full-width search bar under the header. */
+.search-toggle { display: inline-flex; }
+.icon-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.icon-btn:hover,
+.icon-btn[aria-expanded="true"] { color: var(--clay); border-color: var(--clay-soft); background: var(--surface); }
+
+/* The drop-down panel: a search bar plus live suggestions, anchored to
+   .site-head and spanning the header content width. */
+.search-pop {
+  position: absolute;
+  top: calc(100% - 0.55rem);
+  left: 2rem;
+  right: 2rem;
+  z-index: 30;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  box-shadow: 0 14px 34px -14px rgba(43, 42, 39, 0.24);
+  animation: search-pop-in 0.16s ease;
+  overflow: hidden;
+}
+[data-theme="dusk"] .search-pop { box-shadow: 0 14px 34px -12px rgba(0, 0, 0, 0.5); }
+.search-pop-bar { display: flex; align-items: center; }
+.search-pop-icon { margin-left: 1.1rem; color: var(--faint); flex: none; }
+.search-pop input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--sans);
+  font-size: 1rem;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.85rem 0.5rem 0.85rem 0.8rem;
+}
+.search-pop input::placeholder { color: var(--faint); }
+.search-pop-close {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2rem; height: 2rem;
+  margin-right: 0.55rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.search-pop-close:hover { color: var(--ink); background: var(--surface); }
+
+/* Suggestions */
+.search-pop-list { list-style: none; margin: 0; padding: 0.3rem 0; border-top: 1px solid var(--line); }
+.search-pop-item {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: left;
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.6rem 1.15rem;
+  transition: background 0.15s;
+}
+.search-pop-item.is-active { background: var(--surface); }
+.search-pop-title {
+  font-family: var(--sans);
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-pop-item.is-active .search-pop-title { color: var(--clay); }
+.search-pop-type {
+  flex: none;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.search-pop-all {
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.65rem 1.15rem 0.55rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--clay);
+}
+.search-pop-all:hover { text-decoration: underline; }
+.search-pop-empty {
+  padding: 0.9rem 1.15rem;
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* Hide the browser's native search clear button — we provide our own controls. */
+.search-pop input::-webkit-search-cancel-button,
+.search-field input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+
+@keyframes search-pop-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-pop { animation: none; }
+}
+
+/* /search page */
+.search-page { max-width: 64rem; margin: 0 auto; padding: 0 2rem; }
+.search-field { position: relative; display: flex; align-items: center; max-width: 38rem; margin: 0 auto; }
+.search-field-icon { position: absolute; left: 1.1rem; color: var(--faint); pointer-events: none; }
+.search-field input {
+  width: 100%;
+  font-family: var(--sans);
+  font-size: 1.05rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.9rem 1.3rem 0.9rem 3rem;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.search-field input::placeholder { color: var(--faint); }
+.search-field input:focus {
+  outline: none;
+  border-color: var(--clay-soft);
+  background: var(--bg);
+  box-shadow: 0 0 0 3px rgba(176, 125, 82, 0.12);
+}
+
+.search-status {
+  max-width: 38rem;
+  margin: 1.5rem auto 0;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Result rows reuse .list/.entry; the date sits under the body, cluster in .when. */
+.search-date { display: block; margin-top: 0.5rem; font-family: var(--sans); font-size: 0.78rem; color: var(--faint); }
+
+mark {
+  background: rgba(176, 125, 82, 0.18);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 0.12em;
+}
+[data-theme="dusk"] mark { background: rgba(205, 166, 133, 0.22); }

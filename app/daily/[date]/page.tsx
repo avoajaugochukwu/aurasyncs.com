@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getDayBySlug, allDailySlugs, DISPLAY_TOTAL, getMoods, MOODS } from "@/lib/daily";
+import { getDayBySlug, allDailySlugs, DISPLAY_TOTAL, MOODS } from "@/lib/daily";
 import { getAllPosts } from "@/lib/posts";
 import { clusterFor, CLUSTERS } from "@/lib/clusters";
 import { DailyReader } from "@/components/daily/DailyReader";
@@ -95,7 +95,6 @@ export default async function DailyDatePage({ params }: DailyDatePageProps) {
         total={DISPLAY_TOTAL}
         prevHref={`/daily/${day.prevSlug}`}
         nextHref={`/daily/${day.nextSlug}`}
-        moods={getMoods()}
         moodList={MOODS}
         reflection={day.reflection}
         practice={day.practice}

@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next'
 import { getAllPosts } from '@/lib/posts'
 import { allDailySlugs } from '@/lib/daily'
+import { getAllJournalSlugs } from '@/lib/journal'
+import { getAllAuthorSlugs } from '@/lib/authors'
 import { baseUrl } from './metadata';
 
 // Define static routes directly
@@ -43,5 +45,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...routeUrls, ...dailyHub, ...dailyUrls, ...blogUrls];
+  const authorUrls: MetadataRoute.Sitemap = getAllAuthorSlugs().map((slug) => ({
+    url: `${baseUrl}/author/${slug}`,
+    lastModified: formattedDate,
+    changeFrequency: 'monthly' as const,
+    priority: 0.5,
+  }));
+
+  // Journal section: its own landing + one page per prompt guide.
+  const journalIndex: MetadataRoute.Sitemap = [{
+    url: `${baseUrl}/journal`,
+    lastModified: formattedDate,
+    changeFrequency: 'weekly' as const,
+    priority: 0.8,
+  }];
+
+  const journalUrls: MetadataRoute.Sitemap = getAllJournalSlugs().map((slug) => ({
+    url: `${baseUrl}/journal/${slug}`,
+    lastModified: formattedDate,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  return [...routeUrls, ...dailyHub, ...dailyUrls, ...journalIndex, ...journalUrls, ...blogUrls, ...authorUrls];
 }

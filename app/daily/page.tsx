@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getToday, monthIndex, getWindowAround, getMoods, MOODS, DISPLAY_TOTAL } from "@/lib/daily";
+import { getToday, monthIndex, getWindowAround, MOODS, DISPLAY_TOTAL } from "@/lib/daily";
 import { MonthIndex } from "@/components/daily/MonthIndex";
 import { HubToday } from "@/components/daily/HubToday";
 import { baseUrl } from "@/app/metadata";
@@ -86,7 +86,6 @@ export default function DailyHub() {
         dateLabel={`${today.monthName} ${today.day}`}
         affirmation={today.affirmation}
         todaySlug={today.slug}
-        moods={getMoods()}
         moodList={MOODS}
       />
 
