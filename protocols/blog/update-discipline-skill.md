@@ -1,6 +1,6 @@
 ---
 name: update-discipline
-description: When to update an existing post vs publish a new one. When to redirect. How to track updates when there's no modified-date stamp you flip by hand. When to sunset stale posts. This is the skill that prevents content rot, link decay, claim/scripture drift, and accidental duplicate-intent posts from accumulating across Aurasyncs's affirmations corpus.
+description: When to update an existing post vs publish a new one. When to redirect. How to track updates via the `lastEditedTime` frontmatter field you bump by hand. When to sunset stale posts. This is the skill that prevents content rot, link decay, claim/scripture drift, and accidental duplicate-intent posts from accumulating across Aurasyncs's affirmations corpus.
 ---
 
 # Update Discipline — the long maintenance game
@@ -36,15 +36,15 @@ When any trigger fires, run the post through the update / replace / merge / suns
 
 ---
 
-## Tracking updates without a date you stamp by hand
+## Tracking updates via the `lastEditedTime` frontmatter field
 
-**Important:** Aurasyncs posts have **no `dateModified`/`lastUpdated` field you set manually**. Posts carry Notion's `createdTime` and `lastEditedTime` (migrated into `content/posts/<slug>.json` from the Notion page), plus the props in the migration (Created, etc.). Do **not** invent a hand-edited "last updated" field — track update history through:
+**Important:** Aurasyncs posts carry a `lastEditedTime` frontmatter field that you **bump by hand on every meaningful edit**. It's the modified-date — it feeds `og:modifiedTime` and the JSON-LD `dateModified` that ship automatically from `app/blog/[slug]/page.tsx`, so a stale `lastEditedTime` means a stale `dateModified`. Alongside it, `createdTime` is the original publish date. Track update history through:
 
-- **Notion `lastEditedTime` + git history** — the canonical edit happens **in Notion** (the source of truth), then you re-run `node --env-file=.env scripts/migrate-notion.mjs` to pull the updated `content/posts/<slug>.json` and images. Notion stamps `lastEditedTime` automatically; the commit of the re-migrated JSON is the repo-side record. (`git log content/posts/<slug>.json` is your update trail.) For small fixes you may edit `content/posts/<slug>.json` directly, but the durable edit belongs in Notion or it gets overwritten on the next migrate.
-- **`Created` / `createdTime`** — the original publish date. For a *replacement* you publish a new Notion page at a new slug with its own fresh Created date. For a substantial in-place refresh the date stays the post's original — don't fake a new publish date; `lastEditedTime` already reflects the refresh.
-- **A visible correction note in the body** — when an update *corrects* a previous claim, say so in the post (see below). That's the reader-facing freshness signal, since there's no auto "last updated" stamp on the rendered page.
+- **`lastEditedTime` + git history** — the canonical edit happens by editing the `.mdx` file directly at `content/posts/<slug>.mdx`. When you update the body or frontmatter, set `lastEditedTime` to the current ISO timestamp; that value is what `dateModified` renders. The commit of the edited `.mdx` is the repo-side record. (`git log content/posts/<slug>.mdx` is your update trail.) There's no Notion round-trip and no migrate step — the file *is* the source of truth, and the file existing publishes it.
+- **`createdTime`** — the original publish date. For a *replacement* you write a new `.mdx` file at a new slug with its own fresh `createdTime`. For a substantial in-place refresh the `createdTime` stays the post's original — don't fake a new publish date; bumping `lastEditedTime` already reflects the refresh.
+- **A visible correction note in the body** — when an update *corrects* a previous claim, say so in the post (see below). That's the reader-facing freshness signal that complements the `dateModified` stamp.
 
-Freshness on Aurasyncs is therefore communicated by *the content actually being current and accurate*, plus honest correction notes — not by a date field you flip.
+Freshness on Aurasyncs is therefore communicated by *the content actually being current and accurate*, a bumped `lastEditedTime`, plus honest correction notes.
 
 ---
 
@@ -58,17 +58,17 @@ Update the existing post (do not publish a new one) when:
 - A seasonal/occasion post needs its yearly pass before its window
 - A "why they work" claim needs re-sourcing or softening to meet the trust model
 - A new related set or practice guide should now be linked from the post
-- The post predates the current Notion prop shape and needs the new fields (Meta Description, Tags, Excerpt, Featured Image)
+- The post predates the current frontmatter shape and needs the new fields (`metaDescription`, `tags`, `excerpt`, `featuredImage`)
 - New internal links should be added (because new sibling collections / practice guides / hubs have been published)
 
 ### How to update in place
 
-1. Open the post **in Notion** (source of truth). For a quick fix you may instead edit `content/posts/<slug>.json` directly, but know it will be overwritten on the next migrate unless Notion is also updated.
+1. Open the post's `.mdx` file at `content/posts/<slug>.mdx` and edit it directly — the file is the source of truth.
 2. Make the changes
 3. Add or update inline citations where you've touched a factual claim — link a reputable, real source (no fabricated studies); for faith sets quote scripture accurately and note the translation
-4. If the update *corrects* a previous claim — a wrong/overclaimy line, a mis-quoted verse, a manifestation promise — add a correction note (see below) using a supported block
+4. If the update *corrects* a previous claim — a wrong/overclaimy line, a mis-quoted verse, a manifestation promise — add a correction note (see below) as a blockquote or a bold "**Correction:**" lead-in line
 5. Refresh internal links to point at any newly-shipped related sets or practice guides
-6. Re-run the migrate script (`node --env-file=.env scripts/migrate-notion.mjs`) to pull the updated JSON + images, and append/update `content/posts/_index.json` as needed
+6. **Bump `lastEditedTime`** in the frontmatter to the current ISO timestamp — this feeds `dateModified`/`og:modifiedTime`
 7. Run `/b-review` to audit the updated post
 8. Commit with a clear message — the commit *is* your repo-side update record: `Refresh "money affirmations": swap 6 weak lines, re-source the self-affirmation study, link abundance practice guide`
 
@@ -90,22 +90,22 @@ What does NOT count as substantive:
 - Single-link replacement (without changing a claim)
 - Image swap with no content change
 
-Never fake freshness by re-migrating without changing the substance — readers and Google both notice over time (and `lastEditedTime` doesn't make a stale post fresh).
+Never fake freshness by bumping `lastEditedTime` without changing the substance — readers and Google both notice over time (and a fresh `dateModified` doesn't make a stale post fresh).
 
-### How to write a correction (supported block — no custom component)
+### How to write a correction (plain Markdown — no custom component)
 
-The Notion renderer (`components/NotionRenderer.tsx`) supports a fixed block set; there is no `<CorrectionNote>` component. Write the correction as a `callout` block (the tip box), a `quote` block (the answer box), or a paragraph led with a bold **Correction:**. Add it when the update *changes a previous claim*. Examples:
+The renderer (`components/MdxContent.tsx`) maps plain-Markdown elements; there is no `<CorrectionNote>` component. Write the correction as a Markdown blockquote (`> …`, the styled answer box), or a paragraph led with a bold **Correction:**. Add it when the update *changes a previous claim*. Examples:
 
 - "This set previously implied saying money affirmations would 'guarantee' abundance. Reworded — affirmations support a mindset, they don't promise an outcome."
 - "The post previously linked our old morning set, which has moved. Updated to the current [Morning Affirmations](/blog/morning-affirmations)."
 - "The post previously quoted Philippians 4:13 without noting a translation, and slightly mis-worded it. Corrected, with the translation (NIV) now noted."
 
-Format — callout/quote form (rendered as the tinted box):
+Format — blockquote form (rendered as the left-bordered italic box):
 
 ```
-Correction: This collection previously said affirmations could
-"replace" therapy for anxiety. They don't. The line now states they
-support — and never replace — care from a qualified professional.
+> Correction: This collection previously said affirmations could
+> "replace" therapy for anxiety. They don't. The line now states they
+> support — and never replace — care from a qualified professional.
 ```
 
 Or the bold-line form, inline where the correction applies:
@@ -115,7 +115,7 @@ Or the bold-line form, inline where the correction applies:
 That sentence is removed; the claim below links a real, reputable source.
 ```
 
-Because there's no auto "last updated" stamp on the page, a visible, honestly-worded correction is *the* trust signal — and on a wellbeing-adjacent (YMYL) site, a reader leaning on these words in a hard moment deserves to know what changed. Sites that log corrections are taken more seriously than sites that quietly edit.
+Even though `dateModified` ships, a visible, honestly-worded correction is *the* reader-facing trust signal — and on a wellbeing-adjacent (YMYL) site, a reader leaning on these words in a hard moment deserves to know what changed. Sites that log corrections are taken more seriously than sites that quietly edit.
 
 ---
 
@@ -130,13 +130,10 @@ Replace when:
 
 ### How to replace
 
-1. Write the new post in Notion at a new slug (do not reuse the old slug — the URL is stamped on history), with its own Slug, fresh Created date, and Meta Description
-2. Set Status to **"Done"** on the new post once it's ready (anything other than "Done" hides it from listings)
-3. Run the migrate script so the new post lands in `content/posts/<new-slug>.json` and is appended to `content/posts/_index.json`
-4. Set up a 301 redirect from the old slug to the new slug
-5. Update any internal links pointing to the old slug (use `Grep` / repo-wide search across `content/posts/`)
-6. Remove the old post from publication — set its Notion Status to anything other than "Done" and delete `content/posts/<old-slug>.json` (the 301 keeps the URL alive); git history preserves the old version
-7. Keep the old Notion page archived if anyone needs to reference it
+1. Write the new post's `.mdx` file at a new slug — `content/posts/<new-slug>.mdx` (do not reuse the old slug — the URL is stamped on history; the slug *is* the filename), with its own fresh `createdTime`, `lastEditedTime`, and `metaDescription`. The file existing publishes it — there's no status to set.
+2. Set up a 301 redirect from the old slug to the new slug
+3. Update any internal links pointing to the old slug (use `Grep` / repo-wide search across `content/posts/`)
+4. Remove the old post from publication — delete `content/posts/<old-slug>.mdx` (the 301 keeps the URL alive); git history preserves the old version
 
 ### The 301 redirect
 
@@ -168,11 +165,11 @@ async redirects() {
 If two posts target overlapping intents (e.g. two near-identical "confidence affirmations" collections, or "anxiety affirmations" and "affirmations for anxiety" that say the same thing):
 
 1. Pick the stronger of the two as the survivor
-2. Move the unique, verified material (an extra set of well-formed lines, a clearer "how to use" section, a better-sourced "why they work") from the weaker into the survivor — **in Notion**
-3. Expand the survivor's target in the keyword brief, run `/b-review`
-4. Re-migrate the survivor; 301-redirect the weaker's slug to the survivor's slug
+2. Move the unique, verified material (an extra set of well-formed lines, a clearer "how to use" section, a better-sourced "why they work") from the weaker into the survivor's `.mdx` file
+3. Expand the survivor's target in the keyword brief, bump its `lastEditedTime`, run `/b-review`
+4. 301-redirect the weaker's slug to the survivor's slug
 5. Update any internal links that pointed at the weaker slug
-6. Set the weaker's Notion Status off "Done" and delete `content/posts/<weaker-slug>.json`
+6. Delete `content/posts/<weaker-slug>.mdx`
 
 ### Detecting overlap
 
@@ -182,7 +179,7 @@ Run a periodic audit:
 - Group posts by that query
 - Any group with > 1 post is a merge candidate
 
-On an affirmations site, near-duplicate intents are common ("anxiety affirmations" vs "affirmations for anxiety," "money affirmations" vs "abundance affirmations") — catch these before they're written by checking the existing corpus and `content/posts/_index.json` for the intent first.
+On an affirmations site, near-duplicate intents are common ("anxiety affirmations" vs "affirmations for anxiety," "money affirmations" vs "abundance affirmations") — catch these before they're written by checking the existing corpus (the `.mdx` files in `content/posts/`) for the intent first.
 
 ---
 
@@ -197,14 +194,14 @@ Sunset when:
 ### How to sunset
 
 1. Confirm no internal links point to the slug (search `content/posts/`)
-2. Set the Notion Status off "Done" and delete `content/posts/<slug>.json`
+2. Delete `content/posts/<slug>.mdx`
 3. Either:
    - Return HTTP 410 Gone (preferred for content that should be deindexed quickly)
    - Or 301 to the closest topical post — usually a relevant themed collection (preferred if there's a natural successor)
 
 Sunsetting is rare. Most "old" posts should be updated, replaced, or merged — not sunset.
 
-An interim option short of deletion: set Notion **Status** to anything other than "Done" (only "Done" is treated as published) to pull a post out of listings while you decide. That hides it from the site — useful when a post is wrong but a fix is pending. (Note: the index reads local JSON via `lib/posts.ts`, while `[slug]` still reads live Notion during the migration — so pull a hidden post from both: flip Status *and* remove/regenerate its JSON.)
+An interim option short of deletion: move the post's `.mdx` file out of `content/posts/` (e.g. into a `drafts/` folder outside the published directory) to pull it from listings while you decide. The file existing in `content/posts/` is what publishes it, so removing it from that directory hides it everywhere — useful when a post is wrong but a fix is pending. `lib/posts.ts` reads the `.mdx` files via `gray-matter`, and `app/blog/[slug]/page.tsx` reads the same files, so there's a single source to pull.
 
 ---
 
@@ -221,7 +218,7 @@ Different content has different freshness expectations. On an affirmations site 
 | Practice guide ("how to use affirmations") | A claim or method changes; a new study appears | Every 18-24 months |
 | Pillar / topic hub (e.g. "self-love affirmations" hub) | A new sibling set ships under it | Every 12-18 months |
 
-When a post is due, the orchestrator can flag it via a maintenance run that checks `createdTime` and Notion `lastEditedTime` (and git's last-touched date on the JSON) against this model and the event/season triggers above.
+When a post is due, the orchestrator can flag it via a maintenance run that checks `createdTime` and `lastEditedTime` (and git's last-touched date on the `.mdx` file) against this model and the event/season triggers above.
 
 ---
 
@@ -230,14 +227,14 @@ When a post is due, the orchestrator can flag it via a maintenance run that chec
 Periodically (monthly is fine, plus a pre-season sweep), the site runs a maintenance audit:
 
 ```
-For each post in content/posts/ (and its Notion source):
-  - Check createdTime + Notion lastEditedTime + git last-modified against
+For each .mdx post in content/posts/:
+  - Check createdTime + lastEditedTime + git last-modified against
     the freshness model and occasion/season triggers
   - Flag seasonal/occasion posts whose window is within 6 weeks
   - Check every outbound URL for 200 status (no 404s)
   - Check every internal link (to related sets / practice guides) for resolution
-  - Confirm Status is "Done" (or intentionally hidden), and that the JSON
-    in content/posts/ matches the live Notion state
+  - Confirm the post is present in content/posts/ (its presence publishes it)
+    or intentionally pulled
   - Re-verify headline claims (the "why they work" science, any health/money
     line) against current reputable sources — no fabricated studies
   - Confirm scripture quotes are accurate with translation noted
@@ -252,9 +249,9 @@ The output is a triage list. Each post gets one of the three decisions (leave / 
 
 ---
 
-## Tracking versions without a hand-set date field (advanced)
+## Tracking versions with a reader-facing change log (advanced)
 
-Because there's no hand-edited "last updated" date on the page, for a handful of high-traffic posts where updates happen often you may want an in-body, visible change log near the bottom — a supported block (paragraph + bulleted list), reader-facing, honest:
+Beyond the `lastEditedTime` stamp, for a handful of high-traffic posts where updates happen often you may want an in-body, visible change log near the bottom — plain Markdown (a sub-heading + bulleted list), reader-facing, honest:
 
 ```
 What's changed
@@ -263,7 +260,7 @@ What's changed
 - First published.
 ```
 
-This is optional and reader-facing — not a Notion prop. Notion's `lastEditedTime` and the git log remain the authoritative history; this in-body note is for readers who want to know the post is maintained. Reserve it for posts that get cited externally or drive significant traffic.
+This is optional and reader-facing — not a frontmatter field. The `lastEditedTime` stamp and the git log remain the authoritative history; this in-body note is for readers who want to know the post is maintained. Reserve it for posts that get cited externally or drive significant traffic.
 
 ---
 
@@ -279,8 +276,8 @@ Over time the redirects pile up. Rules:
 
 ## What kills update discipline
 
-- **Faking freshness by re-migrating without changing content** — Google and readers notice the dishonesty over time (and `lastEditedTime` won't hide a stale post)
-- **Editing only the JSON and not Notion** — the next migrate overwrites your fix; the durable edit lives in Notion
+- **Faking freshness by bumping `lastEditedTime` without changing content** — Google and readers notice the dishonesty over time (a fresh `dateModified` won't hide a stale post)
+- **Forgetting to bump `lastEditedTime` after a real update** — `dateModified`/`og:modifiedTime` then misreport the post as untouched; set it on every meaningful edit
 - **Leaving 404s on outbound links** — reference sites move; the maintenance run catches them
 - **Letting an overclaimy or unsourced claim sit** — the moment a "why they work" line can't be sourced, or a manifestation line promises an outcome, or a wellbeing line should point to real help and doesn't, fix it; on a YMYL topic a reader trusting these words deserves accuracy
 - **Missing the seasonal/occasion window** — a New Year set refreshed in February is wasted; do the pass before the window
@@ -295,18 +292,18 @@ Over time the redirects pile up. Rules:
 
 - [ ] Decision (update / replace / merge / sunset) is correct for this post
 - [ ] If updating, all changes are substantive (not cosmetic)
-- [ ] No hand-set `dateModified` field invented — update tracked via Notion `lastEditedTime` + clear git commit
-- [ ] Canonical edit made **in Notion**, then re-migrated (not JSON-only)
-- [ ] Notion Status is correct ("Done" to show, anything else to hide), and JSON matches live Notion
+- [ ] `lastEditedTime` frontmatter bumped to current ISO timestamp (feeds `dateModified`/`og:modifiedTime`) + clear git commit
+- [ ] Canonical edit made by editing `content/posts/<slug>.mdx` directly
+- [ ] Post present in `content/posts/` (its presence publishes it) or intentionally pulled
 - [ ] If a seasonal/occasion post, refreshed ahead of its window
 - [ ] Every affirmation is well-formed and non-harmful
 - [ ] Any newly-cited fact verified against a reputable source (no fabricated studies)
 - [ ] Scripture quoted accurately with translation noted (faith sets)
 - [ ] No guaranteed-outcome / replace-professional-care framing
-- [ ] Correction note (supported `callout`/`quote` block or bold "Correction:" line) added if a previous claim was corrected
+- [ ] Correction note (Markdown blockquote or bold "Correction:" line) added if a previous claim was corrected
 - [ ] New citations added as inline links
 - [ ] Internal links updated to any newly-shipped related set or practice guide
-- [ ] If replacing, new slug differs from old slug, with its own fresh Created date
+- [ ] If replacing, new slug differs from old slug, with its own fresh `createdTime`
 - [ ] If replacing, 301 redirect configured
 - [ ] If replacing/merging, internal links to old slug have been updated
 - [ ] `/b-review` run on the updated post

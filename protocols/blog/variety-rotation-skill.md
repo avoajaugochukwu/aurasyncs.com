@@ -7,7 +7,7 @@ description: Anti-repetition rotation system for BlogOS on Aurasyncs. Prevents s
 
 > Originally created by Joey Sergio for FacelessOS, retuned here for blog posts. Same principle: AI writers default to the same mechanical choices, post after post. Rotation forces variety into the slots where the default is sameness.
 
-**MANDATORY:** Before drafting, consult this file. After drafting, append a rotation log to the audit (NOT to the Notion body / `content/posts/<slug>.json` — the orchestrator persists the log separately). When the next post is written, pass the last log so the new post avoids the same combo.
+**MANDATORY:** Before drafting, consult this file. After drafting, append a rotation log to the audit (NOT to the `content/posts/<slug>.mdx` body — the orchestrator persists the log separately). When the next post is written, pass the last log so the new post avoids the same combo.
 
 If you don't rotate, three consecutive posts on the same site read as templated even if individually each is good — and on an affirmations site, where many posts share an "Affirmations for X → why they work → the list → how to use them" backbone, the risk is acute. A reader browsing "affirmations for anxiety," then "affirmations for confidence," then "affirmations for money" should not feel they're reading one article with the topic swapped. Rotation is the antidote.
 
@@ -19,7 +19,7 @@ Each post has a set of mechanical slots where the writer defaults to the same ch
 
 1. Pick ONE number from each relevant bank per post
 2. Never reuse the same combination across consecutive posts on the same site
-3. Log selections in the audit (separate from the Notion body)
+3. Log selections in the audit (separate from the `.mdx` body)
 
 The orchestrator persists the log to `protocols/rotation-log.md` (one level up from this skill, already created) and feeds it to the next run with: *"Avoid these rotation numbers from the last post: [paste log]"*
 
@@ -31,10 +31,10 @@ The single biggest "same-y" risk on Aurasyncs: every post being the same *kind* 
 
 | Code | Archetype | Shape | Lives at |
 |---|---|---|---|
-| 0A-1 | Themed affirmation collection (CORE) | hook → why they work → the affirmations (grouped) → how to use → close | `content/posts/<slug>.json` |
-| 0A-2 | Daily / occasion set | a time-bound or moment-bound set (morning, Monday, before sleep, before a hard conversation) with a use-in-the-moment frame | `content/posts/<slug>.json` |
-| 0A-3 | Faith / scripture set | affirmations paired with accurately quoted scripture (with translation noted) | `content/posts/<slug>.json` |
-| 0A-4 | Practice guide | how to *build* an affirmation habit — writing your own, when to say them, anchoring to a routine | `content/posts/<slug>.json` |
+| 0A-1 | Themed affirmation collection (CORE) | hook → why they work → the affirmations (grouped) → how to use → close | `content/posts/<slug>.mdx` |
+| 0A-2 | Daily / occasion set | a time-bound or moment-bound set (morning, Monday, before sleep, before a hard conversation) with a use-in-the-moment frame | `content/posts/<slug>.mdx` |
+| 0A-3 | Faith / scripture set | affirmations paired with accurately quoted scripture (with translation noted) | `content/posts/<slug>.mdx` |
+| 0A-4 | Practice guide | how to *build* an affirmation habit — writing your own, when to say them, anchoring to a routine | `content/posts/<slug>.mdx` |
 
 **Rule:** don't publish two posts of the same archetype back to back unless a cluster build calls for it (and even then, vary everything below). Most posts are 0A-1 collections — so when you ship two collections in a row, rotate Slot 0B (audience/tone), Slot 0C (grouping), and Slot 5 (evidence framing) hard.
 
@@ -75,7 +75,7 @@ The body of a collection is a list — and the *organizing principle* of that li
 
 ## SLOT 1 — INTRO PATTERN
 
-The opening paragraph shape — the hook *before* the top-of-body quote answer box. See `BLOG-INTRO-SWIPE.md` for the full patterns. Pick one per post.
+The opening paragraph shape — the hook *before* the top-of-body blockquote answer box (a leading Markdown `> …`). See `BLOG-INTRO-SWIPE.md` for the full patterns. Pick one per post.
 
 | Code | Pattern | Best for |
 |---|---|---|
@@ -274,29 +274,29 @@ Personality phrases — the warm Aurasyncs voice showing up between sections. De
 
 ## SLOT 7 — EMPHASIS TYPE
 
-When a section needs pulled emphasis, rotate the type. The Notion renderer (`components/NotionRenderer.tsx`) supports a fixed block set — there are no custom components, and **no tables in post bodies**. "Emphasis" here means a `quote` block (renders as the answer box), a `callout` block (renders as a tip), a bolded lead line, or a pulled key sentence. Pick the *kind of emphasis*, then render it with a supported block.
+When a section needs pulled emphasis, rotate the type. The MDX renderer (`components/MdxContent.tsx`) maps a fixed set of Markdown elements (`h1,h2,h3,p,ul,ol,li,blockquote,hr,code,pre,a,img`) — no custom JSX. "Emphasis" here means a Markdown blockquote (`> …`, renders as the answer box), a **bold lead-in line** (the tip), a bolded key sentence, or a pulled key line. GFM tables *do* render (remark-gfm) — use them sparingly. Pick the *kind of emphasis*, then render it with plain Markdown.
 
 ### Rotation bank (pick the type that fits)
 
-**7A — Tip:** practical advice, as a `callout` block (the tip box)
-**7B — Gentle caution:** what to watch for (forcing it, using affirmations instead of real help), as a `callout` or a bold **A note:** line
+**7A — Tip:** practical advice, as a **bold lead-in line** (e.g. **Try this:** …) or a blockquote
+**7B — Gentle caution:** what to watch for (forcing it, using affirmations instead of real help), as a blockquote or a bold **A note:** line
 **7C — Key Takeaway:** the load-bearing single sentence, as a standalone bolded line
-**7D — Sidebar:** related context that breaks the main flow, as a `quote` or `callout`
+**7D — Sidebar:** related context that breaks the main flow, as a blockquote
 **7E — Definition:** an inline definition of a term (*self-affirmation*, *reframe*), as a bolded term + plain prose
-**7F — Pull Quote:** a sourced fact, a verse, or a warm line pulled out as a `quote` block
-**7G — Comparison:** a two-line "X vs Y" contrast in prose (NO tables in the body)
+**7F — Pull Quote:** a sourced fact, a verse, or a warm line pulled out as a blockquote
+**7G — Comparison:** a two-line "X vs Y" contrast in prose, or a small GFM table if it genuinely reads clearer (tables render — use sparingly)
 
-**Rule:** not every post needs pulled emphasis. But every post over 1,500 words should have at least one. Remember the top-of-body answer is itself a `quote` block — don't double up with a redundant one right beside it.
+**Rule:** not every post needs pulled emphasis. But every post over 1,500 words should have at least one. Remember the top-of-body answer is itself a blockquote — don't double up with a redundant one right beside it.
 
 ---
 
 ## SLOT 8 — FAQ BLOCK STYLE (when applicable)
 
-When the post includes a FAQ block at the bottom, the questions and answers can be styled in different ways. All in supported blocks (heading_3 questions, paragraph answers — no tables, and note no schema is auto-emitted).
+When the post includes a FAQ block at the bottom, the questions and answers can be styled in different ways. All in plain Markdown (`###` questions, paragraph answers). The FAQ stays in the body prose — `FAQPage` schema is not auto-emitted, so don't rely on it.
 
 ### Rotation bank
 
-**8A — Plain Q/A:** Question heading_3, answer paragraph
+**8A — Plain Q/A:** Question as `###`, answer paragraph
 **8B — Inline question + bolded answer first line + supporting prose**
 **8C — Q/A with a linked related set or practice guide per answer**
 **8D — Q/A with "short answer / longer answer" two-paragraph structure**
@@ -361,7 +361,7 @@ Why this mattered.
 
 ## ROTATION LOG TEMPLATE
 
-After every post, append this block to the audit (not the Notion body — orchestrator persists it):
+After every post, append this block to the audit (not the `.mdx` body — orchestrator persists it):
 
 ```
 Rotation Log — <slug> — <date>

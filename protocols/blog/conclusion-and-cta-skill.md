@@ -48,7 +48,7 @@ These are not competing CTAs. They are different things serving different reader
 
 ### 3. The FAQ block at the bottom
 
-This is unique to blogs. It captures People Also Ask questions AND extends time on page. On this site the FAQ lives in the **body** as a `heading_2` "Frequently asked questions" section with each question as a `heading_3` — it's plain Notion blocks, hand-written in the post body, not declared in metadata. It's *not* a CTA, but it lives next to the conclusion and serves a related job: keeping the reader engaged after the affirmations have wrapped.
+This is unique to blogs. It captures People Also Ask questions AND extends time on page. On this site the FAQ lives in the **body** as a `##` "Frequently asked questions" section with each question as a `###` — it's plain Markdown, hand-written in the post body, not declared in metadata. It's *not* a CTA, but it lives next to the conclusion and serves a related job: keeping the reader engaged after the affirmations have wrapped.
 
 ---
 
@@ -234,34 +234,34 @@ The CTA link uses descriptive anchor text — usually the target affirmation set
 
 Most posts benefit from a 2-4 question FAQ. This is NOT a CTA — it's the People Also Ask capture mechanism.
 
-On this site, the FAQ is written directly in the **body** as plain Notion blocks: a single `heading_2` "Frequently asked questions", with each question as a `heading_3` and the answer as the paragraph(s) beneath it. There are no FAQ components and nothing in metadata to declare. Place the FAQ block after the conclusion and before the author bio.
+On this site, the FAQ is written directly in the **body** as plain Markdown: a single `##` "Frequently asked questions", with each question as a `###` and the answer as the paragraph(s) beneath it. There are no FAQ components and nothing in metadata to declare. Place the FAQ block after the conclusion and before the author bio.
 
 ### Anatomy
 
 ```
-heading_2:  Frequently asked questions
+##  Frequently asked questions
 
-heading_3:  Do affirmations for anxiety actually work?
-paragraph:  Affirmations can genuinely help in an anxious moment by giving your
-            mind a calm, grounding line to focus on instead of the spiral —
-            especially paired with slow breathing. They're a support, not a cure,
-            and they work best alongside professional care if anxiety is severe.
-            (40-60 words.)
+###  Do affirmations for anxiety actually work?
+Affirmations can genuinely help in an anxious moment by giving your
+mind a calm, grounding line to focus on instead of the spiral —
+especially paired with slow breathing. They're a support, not a cure,
+and they work best alongside professional care if anxiety is severe.
+(40-60 words.)
 
-heading_3:  How do I use anxiety affirmations when I'm panicking?
-paragraph:  Pick one short line and say it slowly on a long exhale, again and
-            again, until the wave eases. You're not trying to argue the anxiety
-            away — just giving yourself one steady thing to hold. (40-60 words.)
+###  How do I use anxiety affirmations when I'm panicking?
+Pick one short line and say it slowly on a long exhale, again and
+again, until the wave eases. You're not trying to argue the anxiety
+away — just giving yourself one steady thing to hold. (40-60 words.)
 
-heading_3:  What's the best anxiety affirmation to start with?
-paragraph:  Start with a believable one like "This feeling will pass" or "I am
-            safe right now." Avoid forced lines like "I am completely calm" when
-            you're not — your mind rejects them. (40-60 words.)
+###  What's the best anxiety affirmation to start with?
+Start with a believable one like "This feeling will pass" or "I am
+safe right now." Avoid forced lines like "I am completely calm" when
+you're not — your mind rejects them. (40-60 words.)
 ```
 
 Each answer should be self-contained and lead with the direct answer, so it can stand alone as a People Also Ask result.
 
-> **Schema note:** FAQPage JSON-LD is an *optional future enhancement*. The route currently emits only basic title/meta-description/canonical metadata and does **not** ship FAQPage (or any) structured data from the body FAQ, so don't claim the schema is generated. If FAQPage markup is added later, it should be wired up to read from these same body questions and answers.
+> **Schema note:** the route (`app/blog/[slug]/page.tsx`) auto-emits `BlogPosting` + `BreadcrumbList` JSON-LD, the canonical, and OG/Twitter tags — but it does **not** emit `FAQPage` (or `HowTo`) structured data from the body FAQ, so don't claim FAQ schema is generated. The FAQ still earns its keep as PAA capture and time-on-page; if `FAQPage` markup is added later, it should be wired up to read from these same body questions and answers.
 
 ### Question selection
 
@@ -271,7 +271,7 @@ Don't invent questions. Use real ones:
 2. Look at the "People Also Ask" box
 3. Click each question — note which page Google currently surfaces
 4. Write your own better, warmer answers for 2-4 of the most relevant PAA questions
-5. Add those as `heading_3` questions in the body FAQ block
+5. Add those as `###` questions in the body FAQ block
 
 Keep every answer correct and consistent with the post — same framing, same honesty, same psychology. Any factual or scriptural claim in an answer is verified and cited per `accuracy-and-trust-skill.md` (research is WebSearch + WebFetch; there is no brief folder). This is the single highest-leverage move for catching long-tail traffic post-publish.
 
@@ -334,7 +334,7 @@ This is NOT a CTA. It is a trust signal. Keep it visually distinct from the conc
 ### Mistake 5 — No FAQ block
 The post offers the affirmations well but the reader's natural follow-ups (do these work? how do I use them when panicking?) have no home on the page.
 
-**Fix:** every post that *can* have an FAQ block, should — write it as a `heading_2` "Frequently asked questions" section in the body. Collections, explainers, and pillar guides especially.
+**Fix:** every post that *can* have an FAQ block, should — write it as a `##` "Frequently asked questions" section in the body. Collections, explainers, and pillar guides especially.
 
 ### Mistake 6 — Premature email CTA
 > "Before we begin, sign up for our newsletter to get more affirmations!"
@@ -354,9 +354,9 @@ The post offers the affirmations well but the reader's natural follow-ups (do th
 - [ ] Single primary CTA (one action only)
 - [ ] CTA is an inline link to a related affirmation post (sibling in the cluster) at `/blog/<slug>`, with descriptive anchor text
 - [ ] Conclusion shape varied from the previous post's ending
-- [ ] FAQ present in the body as `heading_2` "Frequently asked questions" with `heading_3` questions (2-4 for most posts)
+- [ ] FAQ present in the body as `##` "Frequently asked questions" with `###` questions (2-4 for most posts)
 - [ ] FAQ answers lead with the direct answer and are self-contained (40-60 words each)
-- [ ] No FAQ in metadata; no claim that FAQPage (or any) schema is emitted
+- [ ] No FAQ in metadata; no claim that FAQPage is emitted (BlogPosting + BreadcrumbList ARE auto-emitted; FAQPage/HowTo are not)
 - [ ] Author bio rendered after the FAQ block ("Ugo Charles")
 - [ ] No "thanks for reading" gratitude trap
 - [ ] No three competing CTAs

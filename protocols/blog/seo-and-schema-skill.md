@@ -1,62 +1,68 @@
 ---
 name: seo-and-schema
-description: On-page SEO discipline for aurasyncs.com's affirmation collections, daily/occasion sets, faith sets, and practice guides — plus an honest account of Schema.org JSON-LD, which this site does NOT yet emit. Covers the on-page artifacts the route really ships (title, meta description, canonical), URL slug rules, and the structured-data types (BlogPosting, FAQPage, BreadcrumbList) that WOULD help and are recommended as future enhancements but are not wired today. This is the file that turns a well-written post into an indexable, internal-link-discoverable web page.
+description: On-page SEO discipline for aurasyncs.com's affirmation collections, daily/occasion sets, faith sets, and practice guides — plus an account of the Schema.org JSON-LD the route auto-emits (BlogPosting + BreadcrumbList) and the types that are NOT wired yet (FAQPage, HowTo). Covers the on-page artifacts the route really ships (title, meta description, canonical, OpenGraph with per-post og:image, Twitter summary_large_image, and the two JSON-LD blocks), URL slug rules, and the frontmatter that feeds them. This is the file that turns a well-written post into an indexable, internal-link-discoverable web page.
 ---
 
 # SEO & Schema — the page Google can rank
 
-> A post can be perfectly written and never rank if Google can't parse it, can't crawl it, or can't trust it. This skill is the layer between the prose and the search index. On aurasyncs.com the route emits clean basic metadata — title, meta description, canonical — automatically. It does **not** emit JSON-LD yet. Your job is to feed the route clean inputs and to write the body so it earns snippets and internal-link discovery without relying on structured data that isn't shipping.
+> A post can be perfectly written and never rank if Google can't parse it, can't crawl it, or can't trust it. This skill is the layer between the prose and the search index. On aurasyncs.com the route emits clean metadata — title, meta description, canonical, OpenGraph (incl. per-post og:image), Twitter — **and** two JSON-LD blocks (BlogPosting + BreadcrumbList) automatically. Your job is to feed the route clean inputs (the frontmatter and a well-structured body) so this machinery has good data to emit — you never hand-author the schema yourself.
 
 ---
 
 ## What the page actually emits (read this first)
 
-Posts originate in a **Notion database** (the source of truth) and are pulled into the repo by `node --env-file=.env scripts/migrate-notion.mjs`, which writes `content/posts/<slug>.json` (a `blocks` array of Notion blocks + metadata) and downloads images to `public/blog/`. The body renders through `components/NotionRenderer.tsx`. The blog index reads local JSON via `lib/posts.ts`; the `app/blog/[slug]/page.tsx` route still reads live from Notion (migration in progress).
+Posts are **plain-Markdown MDX files** — you write one file per post directly to `content/posts/<slug>.mdx`. The slug is the filename (there is no `slug` frontmatter field); the file existing in the folder is what publishes it. There is no Notion, no migrate step, no `Status` field. Frontmatter is parsed by `gray-matter` in `lib/posts.ts`; `getAllPosts` reads the `.mdx` files directly; the body renders through `components/MdxContent.tsx`. The `app/blog/[slug]/page.tsx` route reads the same files for both the page and its metadata. (Project image assets are handled by `scripts/gen-assets.mjs`; the old `scripts/migrate-notion.mjs` is gone.)
 
-The route's `generateMetadata` emits only **basic metadata**. There is **no JSON-LD, no BlogPosting, no FAQPage, no BreadcrumbList** shipping today. Do not author JSON-LD and do not claim any structured data renders.
+The route's `generateMetadata` and the page component together emit **rich metadata and two JSON-LD blocks** per post, with zero extra work and **nothing for you to hand-author**:
 
-Auto-emitted, per post, with zero extra work:
-
-- **`<title>`** = the Notion **Title** property (which is *also* the page H1 — one field does both)
-- **`<meta name="description">`** = the Notion **Meta Description** property
+- **`<title>`** = the frontmatter **`title`** (which is *also* the page H1 — one field does both)
+- **`<meta name="description">`** = the frontmatter **`metaDescription`** (falls back to `excerpt`)
 - **`metadata.alternates.canonical`** = `${baseUrl}/blog/${slug}` (canonical **is** emitted — you never set it by hand)
+- **OpenGraph** — `og:type=article`, `og:title`, `og:description`, `og:url`, `publishedTime` (from `createdTime`), `modifiedTime` (from `lastEditedTime`), authors, tags, and a **per-post `og:image` from `featuredImage`**
+- **Twitter** — `summary_large_image` card with title, description, and the `featuredImage`
+- **`BlogPosting` JSON-LD** — headline, description, image, datePublished (`createdTime`), dateModified (`lastEditedTime`), author Person, publisher Organization **"Aurasyncs.com"**, mainEntityOfPage, keywords (from `tags`)
+- **`BreadcrumbList` JSON-LD** — Home → Affirmations → this post
 
-**Not emitted today:** BlogPosting, FAQPage, BreadcrumbList, HowTo, ItemList, DefinedTerm, CollectionPage, OpenGraph/Twitter rich tags. Treat all structured data as **aspirational / future** — see the OPTIONAL section for what would help and how you'd wire it. Never assume a rich result ships; only the title, meta description, and canonical do.
+**Not emitted today:** FAQPage, HowTo (and ItemList/DefinedTerm/CollectionPage). FAQ content lives in the body as prose; FAQPage is a future enhancement — see the FAQPage / HowTo subsection below. Everything above (BlogPosting, BreadcrumbList, OG, Twitter, canonical) **does** ship — do **not** hand-author it, and do not put a `schema` key in frontmatter (nothing reads it).
 
 ---
 
-## The Notion "frontmatter" (the DB properties)
+## The YAML frontmatter
 
-Posts don't have YAML frontmatter — the Notion DB properties *are* the frontmatter. The ones that matter for SEO:
+Each `.mdx` file opens with a YAML frontmatter block (parsed by `gray-matter` in `lib/posts.ts`). The keys that matter for SEO:
 
-| Property | Maps to | Max length | Purpose |
+| Key | Maps to | Max length | Purpose |
 |---|---|---|---|
-| **Title** | The page `<h1>` **and** `metadata.title` → `<title>` and SERP | ≤ 60 chars | The heading the reader sees AND what Google shows |
-| **Meta Description** | `metadata.description` → `<meta name="description">` | 150–160 chars | The SERP snippet under the title |
-| **Slug** | the filename `content/posts/<slug>.json` → path `/blog/<slug>` | ≤ 60 chars | Permanent, indexable URL |
-| **Excerpt** | on-page hook / listing dek (not the SERP snippet) | ~1–2 sentences | The warm orienting line |
-| **Featured Image** | `/blog/<slug>.webp` | — | Social/preview image |
-| **Author** | byline (default "Ugo Charles") | — | Named author |
-| **Status** | "Done" = published | — | Publish gate |
+| **`title`** | The page `<h1>` **and** `metadata.title` → `<title>` / og:title / SERP | ≤ 60 chars | The heading the reader sees AND what Google shows |
+| **`metaDescription`** | `metadata.description` → `<meta name="description">` (falls back to `excerpt`) | 150–160 chars | The SERP snippet under the title |
+| **`excerpt`** | on-page hook / listing dek (not the SERP snippet) | ~1–2 sentences | The warm orienting line |
+| **`featuredImage`** | `/blog/<slug>.webp` → og:image + Twitter image + BlogPosting image | — | Social/preview image (or omit) |
+| **`author`** | byline + BlogPosting author (use "Ugo Charles"; loader default "Aurasyncs Team") | — | Named author |
+| **`tags`** | post badges + BlogPosting `keywords` + og tags (YAML list, 1–4) | — | Topic tags |
+| **`readingTime`** | "N min read" byline | number (minutes) | Reading-time estimate |
+| **`createdTime`** | datePublished + og publishedTime | ISO datetime | Publish date |
+| **`lastEditedTime`** | dateModified + og modifiedTime — **update on every edit** | ISO datetime | Modified date |
 
-**Key consequence of this site's setup:** the **Title** does double duty as both H1 and meta title, so write a Title that works in both the SERP and on the page (≤ 60 chars is the binding constraint). The **Meta Description** is its own property — distinct from **Excerpt**, which is the on-page hook under the headline. There is **no separate meta-title property** — the one Title field is both.
+There is **no `slug` key** (the filename is the slug), **no `status`** (the file existing publishes it), and no `relatedCategories`/`relatedPages`.
 
-**The body must NOT contain its own H1.** The page H1 renders from the Notion Title in `app/blog/[slug]/page.tsx`. Start the body with content — typically the answer quote block (see `featured-snippet-skill.md`), optionally an image above it. Note: in the renderer, `heading_1` is styled visually as `<h2>`, so use **heading_2** for top-level body sections and **heading_3** for sub-sections.
+**Key consequence of this site's setup:** the **`title`** does double duty as both H1 and meta title, so write a `title` that works in both the SERP and on the page (≤ 60 chars is the binding constraint). The **`metaDescription`** is its own key — distinct from **`excerpt`**, which is the on-page hook under the headline. There is **no separate meta-title key** — the one `title` field is both.
 
-See `title-meta-slug-skill.md` for the full Title / Meta Description / Excerpt / Slug rules. This skill assumes those are set.
+**The body must NOT contain its own H1.** The page H1 renders from the frontmatter `title` in `app/blog/[slug]/page.tsx`. Start the body with content — typically the answer blockquote (see `featured-snippet-skill.md`), optionally an image above it. Note: in the component map, a `#` H1 maps to `<h2>`, so use **`##`** for top-level body sections and **`###`** for sub-sections.
+
+See `title-meta-slug-skill.md` for the full title / metaDescription / excerpt / slug rules. This skill assumes those are set.
 
 ---
 
 ## URL slug discipline
 
-The slug is permanent — it's the Notion **Slug** property, the `content/posts/<slug>.json` filename, and the `/blog/<slug>` path. Changing it later breaks every inbound link and shuffles your SEO equity. Get it right the first time.
+The slug is permanent — it's the `content/posts/<slug>.mdx` **filename** (there is no separate slug field) and the `/blog/<slug>` path. Changing it later breaks every inbound link and shuffles your SEO equity. Get it right the first time.
 
 ### Rules
 
 - **Kebab-case.** `affirmations-for-anxiety-finding-peace-inner-calm` not `Affirmations_For_Anxiety` or `affirmationsForAnxiety`.
 - **Front-load the keyword.** `money-affirmations-for-financial-abundance` beats `the-best-ways-to-attract-wealth`.
 - **Drop stop words unless load-bearing.** `morning-affirmations-for-women` beats `some-of-the-best-affirmations-to-say-every-morning`.
-- **No dates in the slug.** `2026-money-affirmations` ages out and forces a yearly redirect. Track freshness in Notion (Created) and git, not a slug year.
+- **No dates in the slug.** `2026-money-affirmations` ages out and forces a yearly redirect. Track freshness in the `createdTime`/`lastEditedTime` frontmatter, not a slug year.
 - **No numbers in the slug unless they're the point.** `365-daily-affirmations-year-of-empowering-words` is fine because `365` is genuinely the set size. If the count later changes, the slug lies.
 - **No filler.** No "the", "a", "an" unless the title doesn't parse without it.
 - **No trailing words.** Don't end with `-guide`, `-article`, or `-post` as filler. (A descriptive tail like `-calm-your-mind` is fine — it's meaning, not filler.)
@@ -75,9 +81,9 @@ The slug is permanent — it's the Notion **Slug** property, the `content/posts/
 
 ---
 
-## Meta title rules (the Title property)
+## Meta title rules (the `title` key)
 
-The Title is both your H1 and your `<title>`/SERP title, so it has to earn its place in search results while still reading well as a page heading.
+The `title` is both your H1 and your `<title>`/SERP title, so it has to earn its place in search results while still reading well as a page heading.
 
 - ≤ 60 chars (Google truncates at ~580 pixels, ~60 chars in most fonts) — the binding constraint since the field is also the H1
 - Target query front-loaded
@@ -92,13 +98,13 @@ Examples (matching real posts on the site):
 - `Money Manifestation Affirmations: 40+ Quotes to Align with Abundance`
 - `Affirmations for Confidence: Unlock Your Inner Power`
 
-> Note: the site's existing Meta Description values are sometimes truncated to ~100 chars. When you touch a post, fix the description up to a full 150–160 chars — short descriptions waste SERP real estate and cost click-through.
+> Note: some existing posts have `metaDescription` values truncated to ~100 chars. When you touch a post, fix the description up to a full 150–160 chars — short descriptions waste SERP real estate and cost click-through.
 
 ---
 
-## Meta description rules (the Meta Description property)
+## Meta description rules (the `metaDescription` key)
 
-Meta Description becomes the `<meta name="description">`. It doesn't directly influence ranking — but it drives click-through, which does. (The visible hook under the headline is the separate **Excerpt** property; keep them distinct so the page doesn't read the same line twice.)
+`metaDescription` becomes the `<meta name="description">` (and the OG/Twitter description). It doesn't directly influence ranking — but it drives click-through, which does. (The visible hook under the headline is the separate **`excerpt`** key; keep them distinct so the page doesn't read the same line twice. If `metaDescription` is omitted, the route falls back to `excerpt` — but set both, distinct.)
 
 - **150–160 chars** (the sweet spot — shorter wastes the SERP real estate, longer gets truncated). **Audit the existing posts: many are ~100 chars and should be lengthened to the full band.**
 - Active verb in the first half
@@ -123,64 +129,45 @@ You do **not** set the canonical. `generateMetadata` in `app/blog/[slug]/page.ts
 https://aurasyncs.com/blog/affirmations-for-anxiety-finding-peace-inner-calm
 ```
 
-There is no Notion `canonical` property and no need for one. If you ever syndicate a post elsewhere, the canonical already points at your version — nothing to configure. This is the one piece of "SEO plumbing" the route *does* ship beyond title/description.
+There is no `canonical` frontmatter key and no need for one. If you ever syndicate a post elsewhere, the canonical already points at your version — nothing to configure. It's one of several pieces of "SEO plumbing" the route ships automatically (alongside OpenGraph, Twitter, and the two JSON-LD blocks).
 
 ---
 
-## Schema / JSON-LD — NOT emitted today (recommended future enhancements)
+## Schema / JSON-LD — auto-emitted by the route
 
-**No JSON-LD ships on this site right now.** The route emits title, meta description, and canonical — nothing more. The types below are **recommendations**, not reality. Adding any of them means editing `app/blog/[slug]/page.tsx` to emit a `<script type="application/ld+json">` built from the post's Notion data. Do **not** describe them to anyone as shipping, and do not put a `schema` property in Notion expecting it to render — nothing reads it.
+**Two JSON-LD blocks ship on every post automatically** — `BlogPosting` and `BreadcrumbList` — built by `app/blog/[slug]/page.tsx` from the post's frontmatter and slug. You do **not** hand-author them, and you do not put a `schema` key in frontmatter — nothing reads it. Your only job is clean frontmatter (good `title`, `metaDescription`, `createdTime`, `lastEditedTime`, `author`, `tags`, `featuredImage`); the schema inputs all come from there.
 
-For each, here's the target shape and why it would help.
+The shapes below are what the route emits today, for reference (host `aurasyncs.com`).
 
-### BlogPosting (the first thing to wire — every post)
+### BlogPosting (every post — auto-emitted)
 
-The baseline article schema. It would let Google attach the author, date, and image to the result. Built from the post's Notion data (host `aurasyncs.com`):
+The baseline article schema. It lets Google attach the author, dates, and image to the result. Built from the post's frontmatter:
 
 ```json
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "<Title>",
-  "description": "<Meta Description>",
-  "datePublished": "<Created, ISO>",
-  "url": "https://aurasyncs.com/blog/<slug>",
-  "author": { "@type": "Person", "name": "<Author, default 'Ugo Charles'>" },
+  "headline": "<title>",
+  "description": "<metaDescription, falls back to excerpt>",
+  "image": ["https://aurasyncs.com/blog/<slug>.webp"],
+  "datePublished": "<createdTime, ISO>",
+  "dateModified": "<lastEditedTime, ISO>",
+  "author": { "@type": "Person", "name": "<author, e.g. 'Ugo Charles'>" },
   "publisher": {
     "@type": "Organization",
-    "name": "AuraSyncs",
-    "url": "https://aurasyncs.com",
+    "name": "Aurasyncs.com",
     "logo": { "@type": "ImageObject", "url": "https://aurasyncs.com/logo.png" }
   },
-  "image": { "@type": "ImageObject", "url": "https://aurasyncs.com/blog/<slug>.webp" }
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "https://aurasyncs.com/blog/<slug>" },
+  "keywords": "<tags, comma-joined>"
 }
 ```
 
-How you'd wire it: in `page.tsx`, build this object from the already-loaded post (Title, Meta Description, Created, Author, Featured Image) and emit one `<script type="application/ld+json">`. No Notion property change needed — all the inputs already exist.
+Note `dateModified` comes from **`lastEditedTime`** — that's why you bump `lastEditedTime` whenever you edit a post, so the freshness signal stays honest. The `image` only appears when `featuredImage` is set, so set it.
 
-### FAQPage (high-value content add)
+### BreadcrumbList (every post — auto-emitted)
 
-Best paired with the body's `## Frequently asked questions` section (a heading_2 + heading_3 questions — see `featured-snippet-skill.md`). To emit it honestly, the answer text in the JSON-LD must match the visible answer word-for-word.
-
-```json
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Do affirmations really work?",
-      "acceptedAnswer": { "@type": "Answer", "text": "<answer, plain text, 40-60 words, matching the visible answer>" }
-    }
-  ]
-}
-```
-
-How you'd wire it: parse the FAQ heading_2 + its heading_3/paragraph pairs out of the Notion `blocks` array in `page.tsx`, and emit a JSON-LD script built from the same blocks so visible and structured stay in sync. Because the renderer adds no auto heading IDs, don't point any schema `url`/anchor at `#frequently-asked-questions` — that fragment won't resolve.
-
-### BreadcrumbList (cheapest add)
-
-Home → Blog → this post. Pure derived data — no new Notion property needed; built from the slug + Title in `page.tsx`. Breadcrumbs render under the title in the SERP and lift CTR, which makes this the cheapest high-value win once you start wiring schema.
+Home → Affirmations → this post. Pure derived data, built from the slug + `title`. Breadcrumbs render under the title in the SERP and lift CTR.
 
 ```json
 {
@@ -188,45 +175,33 @@ Home → Blog → this post. Pure derived data — no new Notion property needed
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://aurasyncs.com" },
-    { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://aurasyncs.com/blog" },
-    { "@type": "ListItem", "position": 3, "name": "<Title>", "item": "https://aurasyncs.com/blog/<slug>" }
+    { "@type": "ListItem", "position": 2, "name": "Affirmations", "item": "https://aurasyncs.com/blog" },
+    { "@type": "ListItem", "position": 3, "name": "<title>", "item": "https://aurasyncs.com/blog/<slug>" }
   ]
 }
 ```
 
-### ItemList (collection / daily-set posts)
+### FAQPage / HowTo (NOT emitted — future enhancement)
 
-For a themed collection ("25+ affirmations for anxiety") or a daily set ("365 daily affirmations") you might emit an `ItemList` of the affirmations. This needs you to parse the affirmation list items out of the `blocks` array, so it's more work than BlogPosting.
+These are the only schema types **not** wired today. FAQ content still lives in the body as prose (a `## Frequently asked questions` section — see `featured-snippet-skill.md`) and earns People Also Ask placement on its own; it just doesn't emit `FAQPage` JSON-LD yet.
 
-```json
-{
-  "@context": "https://schema.org",
-  "@type": "ItemList",
-  "numberOfItems": "<N>",
-  "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "I am calm and capable." },
-    { "@type": "ListItem", "position": 2, "name": "This feeling will pass." }
-  ]
-}
-```
-
-### If you add several
-
-Render each as its own `<script type="application/ld+json">` block. Do not merge multiple `@type`s into one object — validators get confused. The sensible order to wire them: **BlogPosting first** (every post), then **BreadcrumbList** (cheap, derived), then **FAQPage** (high value, needs block parsing).
+If FAQPage is wired up later, the route would parse the `##`/`###` FAQ pairs out of the body and emit a script whose answer text matches the visible answers word-for-word. Because the renderer adds no auto heading IDs, no schema `url`/anchor should point at `#frequently-asked-questions` — that fragment won't resolve. `HowTo` (for step-by-step practice guides) is likewise a future add. Until then, don't claim either renders.
 
 ---
 
-## Open Graph + Twitter Card — not wired today
+## Open Graph + Twitter Card — auto-emitted by the route
 
-The route does **not** currently emit OpenGraph or Twitter Card tags. If you add them later, build `og:type=article`, `og:site_name=AuraSyncs`, `og:title=Title`, `og:description=Meta Description`, `og:url=canonical`, and an `og:image` from the Featured Image (`/blog/<slug>.webp`, supplied at a 16:9 ratio like 1200 × 675 so social crops cleanly). Until then, do not claim a social preview card renders. The Featured Image is still worth setting — it's the listing/preview image and the input any future OG wiring would use.
+The route **does** emit OpenGraph and Twitter Card tags from the frontmatter. OpenGraph ships `og:type=article`, `og:title` (the `title`), `og:description` (`metaDescription`, falling back to `excerpt`), `og:url` (the canonical), `publishedTime` (`createdTime`), `modifiedTime` (`lastEditedTime`), authors, tags, and a **per-post `og:image` from `featuredImage`**. Twitter ships a `summary_large_image` card with the same title, description, and image. You don't hand-author any of these.
+
+The one thing you control is **setting `featuredImage`** — without it there's no `og:image` and no Twitter image, and the social card falls back to a bare text preview. Supply the image at a wide ratio (the route declares 1200 × 800) so social crops cleanly.
 
 ---
 
 ## Robots, sitemap, indexing
 
 - Site-level discoverability is handled by the route + any `robots`/`sitemap` config in `app/`.
-- New posts enter the index via the canonical workflow: write in Notion → set **Status** to "Done" → run `node --env-file=.env scripts/migrate-notion.mjs`. The index page reads the resulting local JSON via `lib/posts.ts`. (A write command may ALSO emit `content/posts/<slug>.json` directly and append `{slug, title, createdTime}` to `content/posts/_index.json`.)
-- **Drafts are excluded by Status, not a meta tag:** any Status other than "Done" keeps the post out of the build and listings. There is no `noindex` mechanism to manage — keep a work-in-progress at a non-"Done" Status and it simply isn't published.
+- New posts enter the index by simply existing: write the `.mdx` file to `content/posts/<slug>.mdx`. `getAllPosts` reads every `.mdx` file in that folder directly via `lib/posts.ts` — there is no index file, no `_index.json`, no blocks array, and no migrate step to run.
+- **There is no draft/Status mechanism:** a file in `content/posts/` is published; to keep a work-in-progress out of the build, keep it out of that folder (e.g. a different directory or branch) until it's ready. There is no `noindex` flag or `Status` field to manage.
 
 ---
 
@@ -234,12 +209,12 @@ The route does **not** currently emit OpenGraph or Twitter Card tags. If you add
 
 See `topical-authority-skill.md` for the full hub-and-spoke discipline. The SEO essentials:
 
-- Links live **in the body** as **inline Notion rich-text `href`s** — a run of rich text with `href` set to `/blog/<sibling-slug>`. The renderer styles links; relative paths resolve against the site root. (There is no Markdown `[text](url)` in the body — the body is Notion blocks, so a link is a rich-text run with an `href`.)
+- Links live **in the body** as **Markdown links** — `[anchor](/blog/<sibling-slug>)`. The component map styles internal links (paths starting with `/`) via `next/link`; relative paths resolve against the site root.
 - Every post links to **≥ 3 sibling posts** in its cluster and **1 pillar** where one exists.
 - Anchor text should *be* the target query of the linked page — the strongest internal-link signal Google has. Anchor "money affirmations for financial abundance" on the link to that post; anchor "affirmations for confidence" on the link to that sibling.
 - Link to the home page only via global nav, not the body.
 
-Real routes to link to: `/blog/<slug>` for posts — all of which exist in `content/posts/` and `content/posts/_index.json`. Verify a slug is real before linking it; never link a 404. Examples of real slugs: `/blog/affirmations-for-anxiety-finding-peace-inner-calm`, `/blog/money-affirmations-for-financial-abundance`, `/blog/bible-affirmations-verses-faith`, `/blog/morning-affirmations-to-transform-your-day`.
+Real routes to link to: `/blog/<slug>` for posts — each corresponds to a `content/posts/<slug>.mdx` file. Verify a slug is real before linking it; never link a 404. Examples of real slugs: `/blog/affirmations-for-anxiety-finding-peace-inner-calm`, `/blog/money-affirmations-for-financial-abundance`, `/blog/bible-affirmations-verses-faith`, `/blog/morning-affirmations-to-transform-your-day`.
 
 ---
 
@@ -247,14 +222,15 @@ Real routes to link to: `/blog/<slug>` for posts — all of which exist in `cont
 
 The `google-trust-audit-skill.md` checks for these. Recap:
 
-- An H1 inside the body (the H1 comes from the Notion Title — the body must not repeat it; and remember a body `heading_1` renders as `<h2>` anyway)
-- Missing or truncated Meta Description (no snippet, or a ~100-char snippet that wastes the band — lengthen to 150–160)
-- Title > 60 chars (truncated SERP title and a bloated H1)
-- Slug contains stop words, dates, or special characters
-- A table in the post body (the Notion renderer supports no tables — reframe as prose or a list)
+- An H1 inside the body (the H1 comes from the frontmatter `title` — the body must not repeat it; and remember a body `#` H1 maps to `<h2>` anyway)
+- Missing or truncated `metaDescription` (no snippet, or a ~100-char snippet that wastes the band — lengthen to 150–160)
+- `title` > 60 chars (truncated SERP title and a bloated H1)
+- Slug (filename) contains stop words, dates, or special characters
+- A table where a list would read better (GFM tables render, but most affirmation comparisons read warmer as prose or a list)
 - No body links to siblings or to the pillar
+- Stale `lastEditedTime` after an edit (it feeds dateModified / og:modifiedTime — bump it whenever you change a post)
 - No outbound source citations where a load-bearing claim is made (psychology of affirmations, any study, any scripture, any health/money claim)
-- Missing Featured Image (no preview image)
+- Missing `featuredImage` (no preview image, no og:image, no Twitter image)
 - A psychology/science/scripture/health/money claim that wasn't verified (see the trust gate in `accuracy-and-trust-skill.md`)
 - Toxic-positivity or denial framing, or a money/manifestation "guarantee" (see the responsible-claims rule in `accuracy-and-trust-skill.md`)
 
@@ -262,20 +238,20 @@ The `google-trust-audit-skill.md` checks for these. Recap:
 
 ## Pre-publish SEO checklist
 
-- [ ] Title ≤ 60 chars, target query front-loaded (it's both H1 and SERP title)
-- [ ] Meta Description 150–160 chars (lengthen any existing ~100-char description), reads as a SERP snippet, distinct from Excerpt
-- [ ] Excerpt set as the on-page hook (distinct from Meta Description)
-- [ ] Slug kebab-case, no stop words, no dates, no special chars; matches the `content/posts/<slug>.json` filename
-- [ ] No H1 in the body — body opens with content + the answer quote block; top-level sections use heading_2
-- [ ] No tables in the body — comparisons reframed as prose/lists
-- [ ] Target query in: Title, Meta Description, Slug, first paragraph, ≥ 1 heading_2, Featured Image alt
-- [ ] Author set (default "Ugo Charles"); Status "Done"; Featured Image at `/blog/<slug>.webp` (16:9)
-- [ ] ≥ 3 inline body links to sibling posts + 1 to the pillar; anchor text = the linked page's target query; no "click here"
+- [ ] `title` ≤ 60 chars, target query front-loaded (it's both H1 and SERP/og title)
+- [ ] `metaDescription` 150–160 chars (lengthen any existing ~100-char description), reads as a SERP snippet, distinct from `excerpt`
+- [ ] `excerpt` set as the on-page hook (distinct from `metaDescription`)
+- [ ] Slug (the `.mdx` filename) kebab-case, no stop words, no dates, no special chars
+- [ ] No H1 in the body — body opens with content + the answer blockquote; top-level sections use `##`
+- [ ] Tables used sparingly (GFM renders, but prefer prose/lists for affirmation comparisons)
+- [ ] Target query in: `title`, `metaDescription`, slug, first paragraph, ≥ 1 `##`, featured image alt
+- [ ] `author` set (use "Ugo Charles"); `featuredImage` at `/blog/<slug>.webp` (wide ratio); `createdTime` + `lastEditedTime` set, `tags` (1–4), `readingTime`
+- [ ] `lastEditedTime` bumped if you edited the post (feeds dateModified / og:modifiedTime)
+- [ ] ≥ 3 body Markdown links to sibling posts + 1 to the pillar; anchor text = the linked page's target query; no "click here"
 - [ ] Outbound links to credible sources for any load-bearing claim (psychology / study / named-translation scripture / health authority)
 - [ ] Every psychology / scripture / health / money claim verified per `accuracy-and-trust-skill.md`; no fabricated stats
-- [ ] (Aspirational) If/when JSON-LD is wired, BlogPosting first, then BreadcrumbList, then FAQPage — built from the Notion data, never claimed to ship before it does
 
-Canonical is emitted automatically — nothing to check there beyond feeding a clean slug. Title and Meta Description are the only other auto-emitted artifacts. JSON-LD, OpenGraph, and Twitter are **not** emitted yet; don't rely on them.
+Canonical, OpenGraph (incl. per-post og:image from `featuredImage`), Twitter, and the `BlogPosting` + `BreadcrumbList` JSON-LD are all emitted automatically — nothing to hand-author there beyond feeding clean frontmatter. `FAQPage`/`HowTo` are the only schema types **not** wired yet; don't rely on them.
 
 ---
 

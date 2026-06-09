@@ -153,7 +153,7 @@ After the four passes, you have assembled a brief covering:
 
 ## SLUG
 <kebab-case slug — see title-meta-slug-skill.md>
-content/posts/<slug>.json   (rendered from the Notion page; the body is a blocks array)
+content/posts/<slug>.mdx   (the slug is the filename; the body is plain-Markdown MDX)
 
 ## SERP shape
 - Featured snippet currently: <yes/no, shape, holding URL>
@@ -188,12 +188,13 @@ content/posts/<slug>.json   (rendered from the Notion page; the body is a blocks
 
 ## HEADING PLAN (per content type)
 <heading list per the content type's template in page-structures-skill.md
- — remember heading_1 styles as <h2>, so use heading_2 for top-level sections, heading_3 for sub-sections;
- the page H1 comes from the Notion Title, so the body has NO H1>
+ — use ## for top-level sections and ### for sub-sections; a body `#` H1 would be
+ rewritten to an h2 by the component map, so never use one;
+ the page H1 comes from the frontmatter `title`, so the body has NO H1>
 
 ## INTERNAL LINK TARGETS
 <1 pillar slug + 3-5 sibling slugs from the same/adjacent cluster, drawn from the existing
-content/posts/ directory and content/posts/_index.json — verified real, never a 404>
+content/posts/ directory — verified real, never a 404>
 
 ## FAQ QUESTIONS (PAA capture)
 - <PAA question 1> — <40-60 word answer plan>
@@ -201,10 +202,10 @@ content/posts/ directory and content/posts/_index.json — verified real, never 
 
 ## FEATURED SNIPPET TARGET
 - query: <the snippet target>
-- shape: paragraph | numbered list | bulleted list | definition
-  (NOTE: the Notion renderer supports NO tables in post bodies — prefer prose/list shapes;
-   the styled quote block is the answer box.)
-- answer: <40-60 word answer plan — this becomes the opening quote block>
+- shape: paragraph | numbered list | bulleted list | definition | table
+  (NOTE: GFM tables DO render via remark-gfm — use them sparingly where a table is the
+   clearest shape; the leading Markdown blockquote is the answer box.)
+- answer: <40-60 word answer plan — this becomes the opening blockquote>
 ```
 
 This brief is what the writer receives. It does not exist as a saved file by default — it lives in context for the duration of the write. You can choose to save it as `research/briefs/<slug>.md` for audit / review purposes.
@@ -248,7 +249,7 @@ A bad brief produces a bad post no matter how good the writer is. The brief is t
 - **The affirmations themselves must be well-formed and not harmful.** Present tense, first person, positively framed, believable. No toxic positivity or denial framing for someone in real distress. (See `affirmation-craft-skill.md`.)
 - **Clinical, faith, and money topics carry the responsible-claims note.** Affirmations support but don't replace professional care; scripture accurate with translation named; money/manifestation framed as mindset, never guaranteed.
 - **The audience voice should be verbatim.** Reader quotes from communities aren't paraphrased — they're stored as exact strings.
-- **The internal-link targets must exist.** Before listing `/blog/anxiety-affirmations-calm-your-mind` or `/blog/money-affirmations-for-financial-abundance` as a link target, confirm the slug exists in `content/posts/` (or `content/posts/_index.json`). Never link a 404.
+- **The internal-link targets must exist.** Before listing `/blog/anxiety-affirmations-calm-your-mind` or `/blog/money-affirmations-for-financial-abundance` as a link target, confirm the matching `content/posts/<slug>.mdx` file exists. Never link a 404.
 
 ---
 
@@ -264,10 +265,10 @@ A bad brief produces a bad post no matter how good the writer is. The brief is t
 - [ ] Every psychology/science/scripture/health/money claim is correct and traced to a citable source — no fabricated studies or "90%…" stats
 - [ ] Clinical/faith/money topics carry the responsible-claims note
 - [ ] The affirmations to feature are well-formed (present tense, first person, positive, believable) and not harmful
-- [ ] Heading plan matches the content type's template in `page-structures-skill.md` (body has NO H1; heading_2 for top-level sections)
-- [ ] Internal-link targets are real slugs (verified against `content/posts/` and `content/posts/_index.json`)
+- [ ] Heading plan matches the content type's template in `page-structures-skill.md` (body has NO H1; `##` for top-level sections, `###` for sub-sections)
+- [ ] Internal-link targets are real slugs (verified against `content/posts/`)
 - [ ] PAA questions are real (lifted from Pass 1, not invented)
-- [ ] Featured-snippet target is set, with a render-safe shape (no table in the body — the renderer drops tables)
+- [ ] Featured-snippet target is set, with a render-safe shape (GFM tables render via remark-gfm — use sparingly)
 
 ---
 

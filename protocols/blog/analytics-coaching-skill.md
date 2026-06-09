@@ -53,14 +53,14 @@ Every published post falls into one of five shapes. Each shape has a specific di
 
 **Fix:**
 1. Search the target query yourself and look at the SERP
-2. Read your Title and Meta Description from a searcher's perspective (remember: the Notion **Title** is both the page H1 and the meta title)
+2. Read your title and meta description from a searcher's perspective (remember: the frontmatter **`title`** is both the page H1 and the meta title; the meta description is the separate `metaDescription` field)
 3. Compare to the top 3 organic results — what are they offering that yours isn't?
 4. Iterate on:
-   - Front-loading the query in the Title ("50 Morning Affirmations to Start the Day Grounded" beats "A Gentle Way to Greet the Morning")
+   - Front-loading the query in the `title` ("50 Morning Affirmations to Start the Day Grounded" beats "A Gentle Way to Greet the Morning")
    - Adding a modifier (a count, for Women / for Men, Daily, Short, Powerful, Bible-based, [2026])
-   - Rewriting the **Meta Description** (150-160 chars) with warm, active phrasing and a specific promise (the number of affirmations, "say these in two minutes," "no belief required to start")
-   - Making sure the **Featured Image** is a strong, recognizable thumbnail — for image-forward queries the quote-card wins the click
-5. Make the edit **in Notion**, re-run the migrate script, then wait 2-4 weeks. Compare CTR.
+   - Rewriting the **`metaDescription`** (150-160 chars) with warm, active phrasing and a specific promise (the number of affirmations, "say these in two minutes," "no belief required to start")
+   - Making sure the **`featuredImage`** is a strong, recognizable thumbnail — for image-forward queries the quote-card wins the click
+5. Make the edit **in the `.mdx` frontmatter** at `content/posts/<slug>.mdx` (bump `lastEditedTime` while you're there), then wait 2-4 weeks. Compare CTR.
 
 **Not the fix:** changing the body of the post. The body is fine — Google ranks it, but the SERP listing isn't winning the click.
 
@@ -74,11 +74,11 @@ Every published post falls into one of five shapes. Each shape has a specific di
 
 **Fix:**
 1. Check the topical map — does this post have inbound internal links from siblings in its cluster (other themed collections, other faith sets, the topic hub)?
-2. Check the Title — is the target query in it?
-3. Check the Slug — is the target query in it?
+2. Check the `title` — is the target query in it?
+3. Check the slug (the `.mdx` filename) — is the target query in it?
 4. Check the body — does the target query appear naturally throughout, or only once?
 5. Build internal links from 2-3 sibling posts to this one
-6. Verify the post is in the sitemap and indexed (GSC → Coverage); confirm Notion **Status: "Done"** and that it actually migrated into `content/posts/` and `_index.json`
+6. Verify the post is in the sitemap and indexed (GSC → Coverage); confirm the `content/posts/<slug>.mdx` file exists (its existence is what publishes it — there's no status field or build step)
 7. Wait 4-8 weeks. Re-check.
 
 **Not the fix:** rewriting the body before fixing the topical authority and technical SEO.
@@ -94,7 +94,7 @@ Every published post falls into one of five shapes. Each shape has a specific di
 
 **Fix:**
 1. Read the Title and Meta Description
-2. Read the first thing on the page — is the warm direct answer in the **top-of-body `quote` block** (the answer box), and is the reader oriented within the first screen?
+2. Read the first thing on the page — is the warm direct answer in the **leading Markdown blockquote** (the answer box), and is the reader oriented within the first screen?
 3. If the list is thin, add the missing scaffolding: a short **"why these work"** section (honest, sourced — see the trust model) and a **"how to use these"** section (when to say them, out loud vs. written, how many to pick). That framing is what turns a bounce into a read.
 4. Either:
    - Align the Title/Description to what the post actually delivers
@@ -113,7 +113,7 @@ Every published post falls into one of five shapes. Each shape has a specific di
 **Diagnosis:** the top of the post is satisfying — they got the first group of affirmations — but the rest isn't pulling them through. A collection where readers stall at 40% means many never reach the later groups, the "how to use them" section, or the CTA; the strongest lines may all be front-loaded.
 
 **Fix:**
-1. Look at the H2 (heading_2) list of the post
+1. Look at the H2 (`##`) list of the post
 2. Are the H2s phrased as claims/questions that *promise specific value* ("The affirmations for the moment anxiety actually spikes") rather than labels ("More affirmations")?
 3. Does the post have an arc (why they work → the affirmations, grouped → the harder/bolder ones → how to use them → close)? See the grouping slots in `variety-rotation-skill.md`.
 4. Spread the strongest, most resonant lines through the groups, not all at the top
@@ -161,9 +161,9 @@ Beyond per-post analytics, look at *what queries* each post ranks for.
 - The post ranks for a query you didn't target
 - It doesn't rank for the query you did target
 
-**Diagnosis:** Google has decided the post is about a different topic than you intended. Either your Title/headings are mis-signaling, or the body is genuinely off-topic from your declared target. (Example: an "affirmations for anxiety" set that ranks for "sleep affirmations" instead — Google read it as a sleep post.)
+**Diagnosis:** Google has decided the post is about a different topic than you intended. Either your `title`/headings are mis-signaling, or the body is genuinely off-topic from your declared target. (Example: an "affirmations for anxiety" set that ranks for "sleep affirmations" instead — Google read it as a sleep post.)
 
-**Fix:** Either re-align the post (rewrite Title/headings/intro to actually target the declared query) or, if the post genuinely serves the other intent better, lean into that — and make sure a dedicated set exists for the original intent.
+**Fix:** Either re-align the post (rewrite `title`/headings/intro to actually target the declared query) or, if the post genuinely serves the other intent better, lean into that — and make sure a dedicated set exists for the original intent.
 
 #### Pattern B: Long-tail without head term
 - Post ranks for 20+ specific queries ("affirmations for social anxiety," "affirmations for anxiety at work")
@@ -214,7 +214,7 @@ GSC + your analytics tell you which posts deserve attention:
 | Post is ranking #15-30 + decent CTR + okay engagement | Substantive update — new groups/lines, better internal linking, surface the related-set link earlier. |
 | Post is ranking > 30 + low CTR + low engagement | Question whether to rewrite, replace, or sunset. |
 | Post is ranking #1-3 + good CTR + low engagement | The opening is right but the body is failing. Rewrite the middle — spread the strong lines, add a re-hook, add "how to use these." |
-| Post is ranking #5-15 + low CTR + low engagement | Title / Meta Description rewrite. The post itself might be fine. |
+| Post is ranking #5-15 + low CTR + low engagement | `title` / `metaDescription` rewrite. The post itself might be fine. |
 
 See `update-discipline-skill.md` for the full update / replace / sunset decision tree.
 

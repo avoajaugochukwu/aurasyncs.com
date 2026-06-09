@@ -8,7 +8,7 @@ Track variety across the slots that matter for aurasyncs:
 - **Audience / tone register** (general · audience-specific: women/men/kids/teens · gentle/clinical-adjacent · energized/novelty).
 - **Affirmation grouping scheme** (by time of day · by sub-theme · by intensity ladder · by life-area · by situation-trigger · flat) — don't reuse the same scheme back-to-back within a cluster.
 - **"Why they work" evidence framing** (self-talk · sourced science · repetition · reframe · scripture · honest-limits).
-- **Intro pattern** (the opening hook before the `quote` answer box).
+- **Intro pattern** (the opening hook before the blockquote answer box).
 - **Conclusion shape** and **CTA target** (which sibling cluster).
 
 Format per entry (see `variety-rotation-skill.md` for the slot codes):

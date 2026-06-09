@@ -2,7 +2,7 @@
 
 ## Opening paragraph patterns by intent
 
-These are the patterns that win the first 8 seconds of attention on an AuraSyncs post. The opening is the **leading quote block** (`>` — the styled, left-border italic box at the top of the body) and it has two jobs in order: **answer the query in 40-60 words** — say what the set is for, roughly how many affirmations it has, and how to use them — then **open a loop that earns the rest of the scroll**. Every factual claim (any study, any scripture quote, any mental-health note) is accurate and sourced, and every affirmation is well-formed: present tense, first person, positively framed.
+These are the patterns that win the first 8 seconds of attention on an AuraSyncs post. The opening is the **leading Markdown blockquote** (`> …` — the styled, left-border italic box at the top of the body) and it has two jobs in order: **answer the query in 40-60 words** — say what the set is for, roughly how many affirmations it has, and how to use them — then **open a loop that earns the rest of the scroll**. Every factual claim (any study, any scripture quote, any mental-health note) is accurate and sourced, and every affirmation is well-formed: present tense, first person, positively framed.
 
 The patterns below are real working shapes for themed affirmation collections, daily/occasion sets, faith/scripture sets, and practice guides. Use them as models, not templates. Match AuraSyncs's warm, empowering, plain (~grade 7) voice — talk to one reader, keep it simple, make them feel steadier.
 
@@ -14,7 +14,7 @@ The fastest way to spot AI writing is in the opening paragraph. Choppy fragments
 
 Your opening should sound like a calm, encouraging friend who has actually used affirmations through a hard week. Not a copywriter writing ad copy. Not a self-help guru. Not a textbook. A warm, specific human who knows the practice helps and won't oversell it.
 
-The read-aloud test starts here. If the opening quote block doesn't sound like something you'd say to a friend who's having a rough day, rewrite it.
+The read-aloud test starts here. If the opening blockquote doesn't sound like something you'd say to a friend who's having a rough day, rewrite it.
 
 ---
 
@@ -232,7 +232,7 @@ The read-aloud test starts here. If the opening quote block doesn't sound like s
 
 ## Opening word-count targets
 
-| Content type | Opening quote block | First heading_2 by |
+| Content type | Opening blockquote | First `##` by |
 |---|---|---|
 | Themed collection — quick | 40-60 words | 100 words total |
 | FAQ / definition | 40-60 words | 100 words total |
@@ -272,7 +272,7 @@ The read-aloud test starts here. If the opening quote block doesn't sound like s
 
 ## What every opening must contain
 
-Regardless of pattern, every opening quote block contains:
+Regardless of pattern, every opening blockquote contains:
 
 1. **The target query addressed** (often verbatim, often in a sharpened restatement)
 2. **A specific element** (the count, a sample affirmation, the exact moment it's for, how to use them) that an AI couldn't have generic'd — and any factual claim is accurate

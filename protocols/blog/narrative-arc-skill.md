@@ -193,21 +193,21 @@ Some short-video retention patterns do not transfer. Avoid:
 
 ## Heading skeleton (universal essay shape)
 
-The page H1 comes from the Notion Title, so the body has no H1. Top-level scene headings are **heading_2** (heading_1 renders visually as an h2 and would collide with the title — don't use it for body headings). No in-page anchor links; the renderer has no auto heading IDs.
+The page H1 comes from the frontmatter `title`, so the body has no H1. Top-level scene headings are **`##`** (a body `#` would be rewritten to an h2 by the component map and collide with the title — don't use one). No in-page anchor links; the renderer has no auto heading IDs.
 
 ```
 [Cold-open paragraph — beat 1 or beat 2]
 
-heading_2  [Scene — beat 2 or 3]
-heading_2  [Scene — beat 4 or 5]
-heading_2  [Scene — beat 6]
-heading_2  The part that almost made me quit       [beat 7 — the supreme ordeal]
-heading_2  [Scene — beat 8]
-heading_2  What this changes                        [beats 9-10]
-heading_2  What to do with it                       [beat 11]
+##  [Scene — beat 2 or 3]
+##  [Scene — beat 4 or 5]
+##  [Scene — beat 6]
+##  The part that almost made me quit       [beat 7 — the supreme ordeal]
+##  [Scene — beat 8]
+##  What this changes                        [beats 9-10]
+##  What to do with it                       [beat 11]
 ```
 
-Six to nine heading_2 sections. No more. An essay with twelve headings is no longer an essay — it is a round-up.
+Six to nine `##` sections. No more. An essay with twelve headings is no longer an essay — it is a round-up.
 
 ---
 

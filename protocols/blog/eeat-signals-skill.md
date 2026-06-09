@@ -1,6 +1,6 @@
 ---
 name: eeat-signals
-description: Experience, Expertise, Authoritativeness, Trustworthiness — the four signals Google uses to judge whether a page deserves to rank. This skill codifies the concrete on-page elements that demonstrate E-E-A-T for a positive-affirmations blog: the "Ugo Charles" author byline, the publisher signal, affirmations that are well-formed and non-harmful, science/health claims traced to peer-reviewed psychology / mental-health orgs / .edu sources, scripture quoted accurately with the translation named, first-person experience markers, keeping content current (tracked via git / Notion lastEditedTime / createdTime — there is no dateModified field), named source citations, and responsible YMYL framing (mental-health-not-medical-advice, no guaranteed-outcome manifestation).
+description: Experience, Expertise, Authoritativeness, Trustworthiness — the four signals Google uses to judge whether a page deserves to rank. This skill codifies the concrete on-page elements that demonstrate E-E-A-T for a positive-affirmations blog: the "Ugo Charles" author byline (rendered AND emitted in BlogPosting JSON-LD as the author Person), the publisher signal (Organization "Aurasyncs.com" in the same schema), affirmations that are well-formed and non-harmful, science/health claims traced to peer-reviewed psychology / mental-health orgs / .edu sources, scripture quoted accurately with the translation named, first-person experience markers, keeping content current (the `lastEditedTime` frontmatter feeds `dateModified`; tracked alongside git history), named source citations, and responsible YMYL framing (mental-health-not-medical-advice, no guaranteed-outcome manifestation).
 ---
 
 # E-E-A-T Signals — the trust layer
@@ -46,15 +46,15 @@ Everything else skates by on the ordinary trust signals — but because most of 
 
 ### Signal 1 — Author byline ("Ugo Charles")
 
-Every post displays an author in the post header. The blog route (`app/blog/[slug]/page.tsx`) renders a visible byline alongside the published date, and emits a basic title/meta-description/canonical (no `BlogPosting` JSON-LD ships today — treat schema as future/aspirational; never claim it ships).
+Every post displays an author in the post header. The blog route (`app/blog/[slug]/page.tsx`) renders a visible byline alongside the published date, and emits `BlogPosting` + `BreadcrumbList` JSON-LD, canonical, OG, and Twitter metadata. In the `BlogPosting`, the byline is emitted as the `author` Person and the publisher as an Organization ("Aurasyncs.com") — so the byline is **machine-readable**, not just visible.
 
-On aurasyncs the byline is a **real author name**, not a brand persona. The Notion `Author` property defaults to **"Ugo Charles"**, which the route renders as the visible byline:
+On aurasyncs the byline is a **real author name**, not a brand persona. The `author` frontmatter field defaults to **"Ugo Charles"**, which the route renders as the visible byline and emits as the schema `author`:
 
 ```
-Author: Ugo Charles   # the default byline on every post
+author: Ugo Charles   # the default byline on every post
 ```
 
-**Rule:** never publish under "Admin" or "Staff" or a random handle. "Ugo Charles" is the consistent author byline for this site — a real person who writes and reviews the affirmation content to a consistent editorial standard (well-formed affirmations, sourced science, accurate scripture, responsible framing). If a specific guest contributor ever writes a post, name them in `Author`; otherwise it stays "Ugo Charles."
+**Rule:** never publish under "Admin" or "Staff" or a random handle. "Ugo Charles" is the consistent author byline for this site — a real person who writes and reviews the affirmation content to a consistent editorial standard (well-formed affirmations, sourced science, accurate scripture, responsible framing). If a specific guest contributor ever writes a post, name them in the `author` frontmatter; otherwise it stays "Ugo Charles."
 
 ### Signal 2 — Brand/editorial standard at footer
 
@@ -78,7 +78,7 @@ The site has an About page (treat this as the site convention) that backs the au
 - Social profiles
 - A clear statement of scope ("AuraSyncs offers affirmations as a supportive wellbeing practice; it is not a substitute for professional mental-health care. If you're struggling, please talk to a doctor or licensed therapist.")
 
-Schema note: the route does **not** currently emit a `publisher` Organization or any JSON-LD — only basic title/meta-description/canonical. Treat structured data as future work; never claim BlogPosting/Organization schema ships.
+Schema note: the route **does** emit a `BlogPosting` whose `publisher` is an Organization ("Aurasyncs.com") and whose `author` is a Person, plus a `BreadcrumbList`, canonical, OG, and Twitter metadata — all auto-generated from the post's frontmatter. So the publisher and author trust signals are machine-readable. Don't hand-author JSON-LD, and don't say "no schema ships." (`FAQPage`/`HowTo` are not emitted — keep any FAQ in the body prose.)
 
 ### Signal 4 — Well-formed affirmations & true, sourced claims (the trust spine for this site)
 
@@ -96,21 +96,21 @@ When an effect genuinely varies (belief level, consistency, whether affirmations
 
 Honest "here's what it can and can't do" framing is itself a trust signal, and it is exactly what AI-slop affirmation sites never do.
 
-### Signal 5 — Keeping content current (no `dateModified` field on this site)
+### Signal 5 — Keeping content current (the `lastEditedTime` currency signal)
 
-Every post carries a `Created` date (from Notion), and the route renders the published date in the header. **The post schema has no `dateModified` / `lastUpdated` field** — so you cannot stamp a "modified" date, and you must not instruct writers to add one.
+Every post carries a `createdTime` (the publish date the route renders in the header) and a `lastEditedTime` in its frontmatter. **`lastEditedTime` feeds `dateModified` in the `BlogPosting` JSON-LD and `og:modifiedTime`** — so a post's currency *is* machine-readable. Keep `lastEditedTime` accurate when you make a substantive edit.
 
-Track currency instead by:
+Track currency by:
 
-- **Git history** — substantive edits (re-checking a science claim, correcting a verse, adding the mental-health note, adding internal links) are captured in the commit log, which is the real record of when a post changed.
-- **Notion `lastEditedTime` / `createdTime`** — the Notion page (the source of truth) carries both a created time and a last-edited time. Use `createdTime` as the publish date and `lastEditedTime` to know when the source was last touched; the migration pulls these into the post JSON.
+- **The `lastEditedTime` frontmatter** — bump it to the edit date when you make a substantive change; the route emits it as `dateModified` and `og:modifiedTime`. `createdTime` stays the original publish date.
+- **Git history** — substantive edits (re-checking a science claim, correcting a verse, adding the mental-health note, adding internal links) are also captured in the commit log, a second record of when a post changed.
 
+```yaml
+createdTime: 2026-06-06T00:00:00.000Z      # the publish date the post surfaces
+lastEditedTime: 2026-06-08T00:00:00.000Z   # feeds dateModified / og:modifiedTime — bump on substantive edits
 ```
-Created: 2026-06-06   # the publish date the post surfaces
-# lastEditedTime / createdTime come from Notion; there is no separate dateModified field
-```
 
-Rule: a *substantive* change is correcting a science claim, fixing a misquoted verse, adding or strengthening the mental-health note, reworking a section, or adding internal links — not fixing a typo. Record substantive changes in git; the Notion `lastEditedTime` reflects when the source was last edited. Do **not** add a `dateModified` field — the schema doesn't have one.
+Rule: a *substantive* change is correcting a science claim, fixing a misquoted verse, adding or strengthening the mental-health note, reworking a section, or adding internal links — not fixing a typo. Bump `lastEditedTime` for substantive changes (and let git history back it up).
 
 ### Signal 6 — First-person experience markers
 
@@ -178,7 +178,7 @@ The site should have a public corrections policy linked from the footer:
 
 > "We fix mistakes in our posts — especially a science claim that's off, a misquoted Bible verse, or an affirmation that didn't land right. Spot something? [Reply to us](mailto:...) and we'll fix it. Corrections are noted at the bottom of the affected post with the date and what changed."
 
-The renderer (`components/NotionRenderer.tsx`) styles a fixed set of Notion blocks (no custom components). When a post has been corrected, log it as a quote block (the styled answer-box) or a callout at the bottom:
+The renderer (`components/MdxContent.tsx`) maps a fixed set of Markdown elements (no custom JSX). When a post has been corrected, log it as a Markdown blockquote (`> …`, the styled answer-box) at the bottom:
 
 > **Correction (2026-05-10):** This post previously cited a "90% of people" statistic with no source; that figure has been removed and replaced with the APA's actual guidance on positive self-talk. The Psalm 23 quote has also been corrected to the NIV wording with the reference named. Corrected.
 
@@ -200,11 +200,11 @@ Common confusions:
 ## E-E-A-T audit checklist (run on every post before publish)
 
 ### Author / brand signals
-- [ ] Visible byline present (default: **Ugo Charles**, via the Notion `Author` property)
+- [ ] Visible byline present (default: **Ugo Charles**, via the `author` frontmatter)
 - [ ] About / publisher page exists and is linked (where the convention is in place)
 - [ ] Brand editorial note rendered at the post footer
 - [ ] Note contains a *specific* claim of relevant editorial standard (well-formed affirmations, checked science, accurate scripture, responsible framing)
-- [ ] Visible byline is "Ugo Charles" (no JSON-LD author block ships today — schema is future work)
+- [ ] Visible byline is "Ugo Charles" (and it ships in the `BlogPosting` JSON-LD as the `author` Person, with the Organization "Aurasyncs.com" as publisher — auto-emitted)
 
 ### Accuracy signals (the spine for this site)
 - [ ] Every affirmation is well-formed (first-person, present-tense, positive, believable) and non-harmful (no denial framing, toxic positivity, or guaranteed-outcome promise)
@@ -222,12 +222,12 @@ Common confusions:
 - [ ] If the author followed a specific practice (kept a morning routine, prayed the verse, wrote their own affirmations), it is stated inline
 
 ### Trust signals
-- [ ] `Created` set correctly; currency tracked via git / Notion `lastEditedTime` (no `dateModified` field exists — do not add one)
+- [ ] `createdTime` set correctly; `lastEditedTime` set and bumped on substantive edits (it feeds `dateModified` / `og:modifiedTime`), with git history as backup
 - [ ] ≥ 3 outbound links to primary / reputable sources (more for pillars; study / APA / NIH / .edu / reputable Bible source preferred)
 - [ ] ≥ 2 named source citations with full attribution + linked reference (where the post asserts science or health facts)
 - [ ] Every science/health fact cited or traceable; every affirmation well-formed; every verse exact with translation named
 - [ ] Corrections policy linked in the footer
-- [ ] If the post has been previously corrected, the correction is logged at the bottom (quote or callout block)
+- [ ] If the post has been previously corrected, the correction is logged at the bottom (a Markdown blockquote)
 
 ---
 
@@ -242,7 +242,7 @@ These are the easy-to-spot mistakes:
 - **Misquoted scripture.** A verse with altered wording, wrong reference, or no translation named → fix by quoting exactly, correcting the reference, naming the translation
 - **Guaranteed-outcome promise.** "Repeat these and the money will come" → fix by framing manifestation as mindset practice with no guaranteed result
 - **Missing mental-health note.** An anxiety/depression post with no support-not-replacement note → fix by adding the light, non-alarmist note
-- **Stale-date confusion.** Trying to add a `dateModified` field → there isn't one; track currency via git / Notion `lastEditedTime` / `Created`
+- **Stale-date confusion.** Leaving `lastEditedTime` unchanged after a substantive edit → bump it to the edit date; it feeds `dateModified` / `og:modifiedTime` (git history backs it up)
 - **AI-only voice.** Zero first-person markers across a 1,200-word post → fix by inserting at least one specific moment of actually practicing the affirmations
 - **Standards by implication.** Footer says "carefully made" without showing the method → fix by being specific
 

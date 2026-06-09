@@ -1,11 +1,11 @@
 ---
 name: page-structures
-description: The content types Aurasyncs ships. Every post is a Notion page pulled into content/posts/<slug>.json by scripts/migrate-notion.mjs and rendered by app/blog/[slug]/page.tsx + components/NotionRenderer.tsx (H1 from the Title property; body = supported Notion blocks only; quote block = answer box; callout = tip; no tables). The four types — 💫 themed affirmation collection, 📅 daily/occasion set, 🙏 faith/scripture set, 🧘 practice guide — each have a property shape, a body skeleton, and a word-count band. Pick the type from the keyword's intent before writing. Audience tuning (women/men/kids/teens) and tone tuning (funny/sweary) are modifiers, not separate types.
+description: The content types Aurasyncs ships. Every post is a plain-Markdown .mdx file at content/posts/<slug>.mdx, read by lib/posts.ts (gray-matter) and rendered by app/blog/[slug]/page.tsx through next-mdx-remote with remark-gfm and a fixed component map (H1 from the title frontmatter; a leading blockquote = answer box; no custom JSX components; GFM tables allowed but used sparingly). The four types — 💫 themed affirmation collection, 📅 daily/occasion set, 🙏 faith/scripture set, 🧘 practice guide — each have a frontmatter shape, a body skeleton, and a word-count band. Pick the type from the keyword's intent before writing. Audience tuning (women/men/kids/teens) and tone tuning (funny/sweary) are modifiers, not separate types.
 ---
 
 # Page Structures — The Aurasyncs Content Types
 
-> Aurasyncs renders every blog post through **one** pipeline: a page authored in the Notion content database is pulled into `content/posts/<slug>.json` by `scripts/migrate-notion.mjs`; `app/blog/[slug]/page.tsx` renders the `<h1>` from the **Title** property and the body through `components/NotionRenderer.tsx`. That renderer supports **only** these blocks: `paragraph`, `heading_1`, `heading_2`, `heading_3`, `bulleted_list_item`, `numbered_list_item`, `to_do`, `toggle`, `code`, `image`, `divider`, `quote`, `callout`. There are **no tables** (a table renders as nothing), **no math**, and **no custom components**. The "shape" of a post is carried entirely by the body skeleton you choose. (`heading_1` is styled as an `<h2>`, so body section headings use `heading_2` / `heading_3`.)
+> Aurasyncs renders every post through **one** route: `app/blog/[slug]/page.tsx` reads `content/posts/<slug>.mdx`, parses frontmatter with **`gray-matter`** (`lib/posts.ts`), renders the `<h1>` from the `title` field, then runs the Markdown body through **`next-mdx-remote/rsc` `<MDXRemote>`** (`components/MdxContent.tsx`) with **`remark-gfm`** and a fixed component map. The map styles only `h1, h2, h3, p, ul, ol, li, blockquote, hr, code, pre, a, img` — there are **no custom JSX components** (`AnswerBox`, `Callout`, `ProTip` do not exist). GFM tables render (remark-gfm), but for affirmations prose and grouped lists usually read better. The route also auto-emits `BlogPosting` + `BreadcrumbList` JSON-LD, canonical, OpenGraph (per-post og:image), and a Twitter card. The "shape" of a post is carried entirely by the Markdown body skeleton you choose.
 
 Pick the type from the keyword's search intent. The value drives word count and snippet strategy. Every affirmation is well-formed and non-harmful (`affirmation-craft-skill.md`) and every load-bearing claim is sourced (`accuracy-and-trust-skill.md`).
 
@@ -13,13 +13,13 @@ Pick the type from the keyword's search intent. The value drives word count and 
 
 ## What carries structure (no custom components)
 
-Because the body is plain Notion blocks, the two non-negotiable structural elements are built from native blocks:
+Because the body is plain Markdown (in an `.mdx` file), the two non-negotiable structural elements are built from Markdown primitives:
 
-- **Answer box** → a **`quote` block** near the top of the body (right after the optional featured image). The renderer styles a quote as a left-bordered, italic box. This is the featured-snippet target and the orienting answer.
-- **CTA / cross-link** → a normal inline **rich-text link** to a sibling affirmation post, e.g. a link to `/blog/morning-affirmations-to-transform-your-day`, placed in the conclusion.
-- **Tip / note** → a **`callout` block** (emoji + tinted) or a bold lead-in line in a paragraph.
+- **Answer box** → a **blockquote** (`> …`) near the top of the body (often right after the featured image). The component map renders a `>` block as a left-bordered, italic box. This is the featured-snippet target and the orienting answer.
+- **CTA / cross-link** → a normal **Markdown link** to a sibling affirmation post, e.g. `[morning affirmations](/blog/morning-affirmations-to-transform-your-day)`, placed in the conclusion.
+- **Tip / note** → a **bold lead-in line** ("**A gentle note.** …") or a blockquote. There is no callout component.
 
-Everything else is `heading_2` / `heading_3` headings, paragraphs, bulleted/numbered lists (the affirmations), and images. **No tables** — write anything tabular as grouped lists.
+Everything else is `##` / `###` headings, paragraphs, ordered/unordered lists (the affirmations), and Markdown images. **Don't invent JSX tags** — raw JSX needs a component in the map, which doesn't exist. If a comparison is genuinely tabular, a GFM table works, but a grouped list usually reads better for affirmations.
 
 ---
 
@@ -27,43 +27,46 @@ Everything else is `heading_2` / `heading_3` headings, paragraphs, bulleted/numb
 
 | Type | Intent | Word count | Snippet play |
 |---|---|---|---|
-| 💫 Themed affirmation collection | "Affirmations for X" → grouped list + framing | 900–1,600 + lists | Quote answer + grouped list |
-| 📅 Daily / occasion set | "365 / Monday / morning affirmations" → time-anchored set | 1,200–2,000+ | Quote answer + dated/grouped list |
-| 🙏 Faith / scripture set | "Bible / Christian affirmations" → affirmation + cited verse | 1,000–1,800 | Quote answer + verse-paired list |
-| 🧘 Practice guide | "how affirmations work / write your own" → method | 1,000–1,600 | Quote answer + numbered method |
+| 💫 Themed affirmation collection | "Affirmations for X" → grouped list + framing | 900–1,600 + lists | Blockquote answer + grouped list |
+| 📅 Daily / occasion set | "365 / Monday / morning affirmations" → time-anchored set | 1,200–2,000+ | Blockquote answer + dated/grouped list |
+| 🙏 Faith / scripture set | "Bible / Christian affirmations" → affirmation + cited verse | 1,000–1,800 | Blockquote answer + verse-paired list |
+| 🧘 Practice guide | "how affirmations work / write your own" → method | 1,000–1,600 | Blockquote answer + numbered method |
 
-All types output to a Notion page → `content/posts/<slug>.json`. They share the universal rules at the bottom.
+All types output to `content/posts/<slug>.mdx`. They share the universal rules at the bottom.
 
 ---
 
-## Property contract (all types)
+## Frontmatter contract (all types)
 
-The pipeline reads these Notion properties (see `scripts/migrate-notion.mjs` and `lib/posts.ts`). Don't invent fields.
+`lib/posts.ts` reads these frontmatter keys (via `gray-matter`). Don't invent fields.
 
-```
-Title:            Affirmations for Anxiety: 25+ Calming Phrases to Quiet Your Mind
-Slug:             affirmations-for-anxiety-finding-peace-inner-calm
-Excerpt:          Short 1–2 sentence on-page hook (shown on the blog index card).
-Meta Description: 150–160 char SERP description, SEPARATE from Excerpt.
-Author:           Ugo Charles
-Tags:             [affirmations, anxiety]
-ReadingTime:      6
-Featured Image:   (file → /blog/<slug>.webp)
-Status:           Done
+```yaml
+---
+title: "Affirmations for Anxiety: 25+ Calming Phrases to Quiet Your Mind"
+excerpt: "Short 1–2 sentence on-page hook (shown on the blog index card)."
+metaDescription: "150–160 char SERP description, SEPARATE from excerpt."
+author: "Ugo Charles"
+tags: ["affirmations", "anxiety"]
+readingTime: 6
+createdTime: "2025-08-18T23:09:00.000Z"
+lastEditedTime: "2025-08-18T23:30:00.000Z"
+featuredImage: "/blog/affirmations-for-anxiety-finding-peace-inner-calm.webp"
+---
 ```
 
 Field notes:
 
-- `Title` — serves as **both** the H1 and the `<title>` / og:title. There is one title field; there is no `metaTitle`. Front-load the keyword; keep the load-bearing part ≤ ~60 chars. Do **not** repeat it as a heading at the top of the body.
-- `Excerpt` — a short 1–2 sentence on-page hook.
-- `Meta Description` — a **separate** 150–160 char SERP description. Don't conflate it with `Excerpt`. (Many existing posts have this truncated to ~100 chars — fix to a full line when you touch them.)
-- `Author` — the byline. Default **"Ugo Charles"**.
-- `Tags` — 1–4 short topical tags (e.g. `affirmations`, plus the theme).
-- `ReadingTime` — minutes (number).
-- `Featured Image` — file; downloaded to `public/blog/<slug>.webp`.
-- `Status` — `Done` publishes; anything else is skipped by the migrate script.
+- The **slug is the filename** (`content/posts/<slug>.mdx`) — there is **no `slug` frontmatter field**. Taken from the brief; don't invent a new one.
+- `title` — serves as **both** the H1 and the `<title>` / og:title / JSON-LD headline. There is one title field; there is no `metaTitle`. Front-load the keyword; keep the load-bearing part ≤ ~60 chars. Do **not** repeat it as a `#` heading at the top of the body.
+- `excerpt` — a short 1–2 sentence on-page hook. Nullable.
+- `metaDescription` — a **separate** 150–160 char SERP description. Don't conflate it with `excerpt`. (Many existing posts have this truncated to ~100 chars — fix to a full line when you touch them.)
+- `author` — the byline. Default in copy is **"Ugo Charles"** (the loader falls back to "Aurasyncs Team" if omitted).
+- `tags` — 1–4 short topical tags (e.g. `affirmations`, plus the theme).
+- `readingTime` — minutes (number).
+- `createdTime` / `lastEditedTime` — ISO datetimes. `createdTime` → `datePublished`/og:publishedTime; `lastEditedTime` → `dateModified`/og:modifiedTime (bump it on edits).
+- `featuredImage` — full path (`/blog/<slug>.webp`); the file lives at `public/blog/<slug>.webp`. Omit if none.
 
-There is **no `dateModified` field** (track updates via `lastEditedTime` / git) and **no JSON-LD** emitted by the route — `BlogPosting` / `FAQPage` schema are not wired, so FAQ content lives in the body as prose, never as a property. See `seo-and-schema-skill.md`.
+There is **no `status` field** (the file existing = published) and **no `relatedCategories`/`relatedPages`** (cross-links are inline Markdown links). A `BlogPosting` + `BreadcrumbList` JSON-LD pair is emitted **automatically** by the route; `FAQPage`/`HowTo` are **not** (optional future work), so FAQ content lives in the body as prose. See `seo-and-schema-skill.md`.
 
 ---
 
@@ -72,21 +75,21 @@ There is **no `dateModified` field** (track updates via `lastEditedTime` / git) 
 **The core type.** One per need. Rank the "affirmations for X" / "X affirmations" query and give the reader both the words and the way to use them.
 **Word count:** 900–1,600 plus the affirmation lists.
 
-### Body skeleton (no H1 — rendered from `Title`)
+### Body skeleton (no `#` H1 — rendered from `title`)
 
 ```
-[image] featured image, caption = descriptive alt ("A calm woman with a hand on her heart")
+![A calm woman with a hand on her heart](/blog/affirmations-for-anxiety-finding-peace-inner-calm-content-1.webp)
 
-[quote] These 25 anxiety affirmations are short, calming phrases you can repeat when
-your mind races — at your desk, in the car, or at 2am. Read them slowly, breathe
-between each one, and keep the two or three that feel true today.
+> These 25 anxiety affirmations are short, calming phrases you can repeat when your
+> mind races — at your desk, in the car, or at 2am. Read them slowly, breathe between
+> each one, and keep the two or three that feel true today.
 
 ## How to use these affirmations
 [Short, practical: say them out loud or silently, repeat a few times, pair with a
 slow breath, pick the ones that fit. 80–140 words.]
 
 ## Calming affirmations for an anxious moment
-[A grouped list of first-person, present-tense affirmations as list items.]
+[A grouped list of first-person, present-tense affirmations.]
 - I am safe in this moment.
 - I breathe in calm and breathe out tension.
 ...
@@ -127,11 +130,11 @@ The grouped list + the "how to use" + "why they help" framing is what makes this
 ### Body skeleton
 
 ```
-[image] featured image, caption = alt
+![A soft sunrise over a calm landscape](/blog/morning-affirmations-to-transform-your-day-content-1.webp)
 
-[quote] Start each morning with one of these affirmations and you set the tone before
-the day sets it for you. Below are 40 morning affirmations grouped by what you might
-need — confidence, calm, gratitude — so you can pick one to carry out the door.
+> Start each morning with one of these affirmations and you set the tone before the
+> day sets it for you. Below are 40 morning affirmations grouped by what you might
+> need — confidence, calm, gratitude — so you can pick one to carry out the door.
 
 ## How to use a daily affirmation
 [Pick one, say it while you get ready, repeat it through the day. 80–140 words.]
@@ -156,7 +159,7 @@ need — confidence, calm, gratitude — so you can pick one to carry out the do
 [CTA to a sibling, e.g. night/sleep affirmations to bookend the day.]
 ```
 
-For calendar sets (365 / month-by-month), group by month or week with a `heading_2` per block and the affirmations as list items. Keep the "how to use" + a habit section so it isn't just a wall of 365 lines.
+For calendar sets (365 / month-by-month), group by month or week with a `##` per block and the affirmations as list items. Keep the "how to use" + a habit section so it isn't just a wall of 365 lines.
 
 ---
 
@@ -168,11 +171,11 @@ For calendar sets (365 / month-by-month), group by month or week with a `heading
 ### Body skeleton
 
 ```
-[image] featured image (soft, light-themed), caption = alt
+![An open Bible in soft light](/blog/bible-affirmations-verses-faith-content-1.webp)
 
-[quote] These Bible-based affirmations turn God's promises into first-person
-declarations you can speak over your day. Each one is paired with the verse it draws
-from, so you can read the affirmation, then sit with the Scripture behind it.
+> These Bible-based affirmations turn God's promises into first-person declarations
+> you can speak over your day. Each one is paired with the verse it draws from, so
+> you can read the affirmation, then sit with the Scripture behind it.
 
 ## How to use these biblical affirmations
 [Read the verse, speak the affirmation, optionally journal it. 80–140 words.]
@@ -209,11 +212,11 @@ Quote each verse exactly, cite book/chapter/verse correctly, and name the transl
 ### Body skeleton
 
 ```
-[image] featured image, caption = alt
+![A person journaling with a cup of tea](/blog/manifestation-affirmations-for-beginners-content-1.webp)
 
-[quote] Affirmations work best when they're believable, present tense, and repeated
-with attention — not just recited. This guide covers what affirmations are, how to
-write ones that actually stick, and a simple daily routine, with examples throughout.
+> Affirmations work best when they're believable, present tense, and repeated with
+> attention — not just recited. This guide covers what affirmations are, how to write
+> ones that actually stick, and a simple daily routine, with examples throughout.
 
 ## What affirmations are (and aren't)
 [Define affirmation; distinguish from mantra/declaration; set honest expectations.
@@ -262,9 +265,10 @@ The structure stays the type's structure; the modifier changes the voice and exa
 
 ## Heading hierarchy (universal, non-negotiable)
 
-- H1 lives in the **Title** property only. **Never in the body.** The route renders the H1. `heading_1` is styled as an `<h2>` by the renderer, so don't use it either — top sections are `heading_2`, sub-sections `heading_3`.
-- Body starts with content (often the featured image), then the **answer `quote` block**, then `heading_2` sections.
-- `heading_2` → `heading_3`, no skips.
+- H1 lives in the frontmatter `title:` only. **Never a `#` in the body.** The route renders the H1, and the component map maps a body `#`/`h1` to an `<h2>` anyway. Top sections are `##`, sub-sections `###`.
+- Body starts with content (often the featured image), then the **answer blockquote** (`>`), then `##` sections.
+- **No `{#id}` anchors and no auto heading IDs** — the renderer does not slugify headings. Don't write anchor syntax; it prints literally.
+- `##` → `###`, no skips.
 
 See `scannable-formatting-skill.md` for the full discipline.
 

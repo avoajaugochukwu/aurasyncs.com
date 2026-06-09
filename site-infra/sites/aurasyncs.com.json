@@ -1,0 +1,20 @@
+{
+  "domain": "aurasyncs.com",
+  "subdomains": ["@", "www"],
+  "railway": {
+    "projectId": "ef52e5f1-38be-4ce5-add4-110f52a35a49",
+    "environmentId": "29a08c50-d6ff-4e67-89c1-426fe32a1695",
+    "serviceId": "695e26e2-a0a8-444f-9717-af4632d7bcf3",
+    "targetPort": null
+  },
+  "email": {
+    "forward": {
+      "hello": "karlthegoo@hotmail.com"
+    }
+  },
+  "analytics": {
+    "timeZone": "Etc/UTC",
+    "currency": "USD",
+    "envVar": "NEXT_PUBLIC_GA_ID"
+  }
+}

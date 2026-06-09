@@ -1,6 +1,6 @@
 ---
 name: featured-snippet
-description: Win position-zero. The 40-60 word direct-answer paragraph, definition snippets, list snippets, and People Also Ask capture for aurasyncs.com's affirmation collections, daily/occasion sets, faith sets, and practice guides. This skill teaches the writer to structure paragraphs and lists that Google's snippet bot can directly lift and display above the regular search results — using only the Notion blocks this site's renderer supports.
+description: Win position-zero. The 40-60 word direct-answer paragraph, definition snippets, list snippets, and People Also Ask capture for aurasyncs.com's affirmation collections, daily/occasion sets, faith sets, and practice guides. This skill teaches the writer to structure paragraphs and lists that Google's snippet bot can directly lift and display above the regular search results — using the plain-Markdown MDX elements this site's renderer supports.
 ---
 
 # Featured Snippet — winning position zero
@@ -11,14 +11,14 @@ description: Win position-zero. The 40-60 word direct-answer paragraph, definiti
 
 ## What renders here (constraints before tactics)
 
-Posts are **Notion blocks** — `content/posts/<slug>.json` holds a `blocks` array, rendered by `components/NotionRenderer.tsx`. That shapes everything below. The renderer supports **only** these blocks: paragraph, heading_1, heading_2, heading_3, bulleted_list_item, numbered_list_item, to_do, toggle, code, image, divider, quote, callout. So:
+Posts are **plain-Markdown MDX files** — one file per post at `content/posts/<slug>.mdx`, rendered by `components/MdxContent.tsx` (`next-mdx-remote/rsc` + `remark-gfm`). The component map styles: h1, h2, h3, p, ul, ol, li, blockquote, hr, code, pre, a, img. So:
 
-- **The snippet "answer box" is the Notion `quote` block.** Put the direct answer in a quote block near the **top** of the body. The renderer styles a quote as a left-border italic block, so the answer reads as a deliberate callout *and* is the first prose Google sees. There is nothing to declare in any property — what's on the page *is* the source of truth.
-- **No tables.** The renderer has no table block — a table in the body simply doesn't render. **Prefer prose and lists** — they're what the renderer styles cleanly and what wins paragraph/list snippets anyway.
-- **No auto heading IDs.** Don't rely on `#anchor` fragments for snippet structure.
-- **No H1 in the body.** The page H1 comes from the Notion **Title**. (And `heading_1` styles as `<h2>` anyway, so a body H1 isn't even possible the way you'd expect.) The quote block is the first prose after the title/hook — you may place an image above it.
+- **The snippet "answer box" is a leading Markdown blockquote (`> …`).** Put the direct answer in a blockquote near the **top** of the body. The renderer styles a blockquote as a left-border italic box, so the answer reads as a deliberate callout *and* is the first prose Google sees. There's nothing to declare in frontmatter — what's on the page *is* the source of truth.
+- **GFM tables DO render** (remark-gfm), but **prefer prose and lists** — they're what wins paragraph/list snippets anyway and read warmer for affirmations. Use a table only when the data is genuinely 2-D.
+- **No auto heading IDs.** No rehype-slug, so don't rely on `#anchor` fragments for snippet structure.
+- **No H1 in the body.** The page H1 comes from the frontmatter **`title`**. (And a `#` H1 maps to `<h2>` anyway, so a body H1 isn't even possible the way you'd expect.) The blockquote is the first prose after the title/hook — you may place an image above it.
 
-So the two workable snippet shapes on this site are: **paragraph** (the quote block) and **list** (a bulleted/numbered list under a heading_2).
+So the two workable snippet shapes on this site are: **paragraph** (the blockquote) and **list** (a bulleted/numbered list under an `##`).
 
 ---
 
@@ -26,9 +26,9 @@ So the two workable snippet shapes on this site are: **paragraph** (the quote bl
 
 | Snippet shape | What it looks like in SERP | Source on page | Trigger queries |
 |---|---|---|---|
-| **Paragraph** | 1-2 sentence answer in a card | The top quote block (40-60 words) | "do affirmations really work", "what is a positive affirmation", "how do affirmations work" |
-| **List** | Numbered or bulleted list of 6-8 items | A heading_2 + a Notion list | "morning affirmations", "money affirmations", "affirmations for anxiety" |
-| **Table** | A small 2-3 column table | (not available — the renderer has no table block) | Reframe as a tight list or prose instead |
+| **Paragraph** | 1-2 sentence answer in a card | The top blockquote (40-60 words) | "do affirmations really work", "what is a positive affirmation", "how do affirmations work" |
+| **List** | Numbered or bulleted list of 6-8 items | An `##` + a Markdown list | "morning affirmations", "money affirmations", "affirmations for anxiety" |
+| **Table** | A small 2-3 column table | A GFM pipe table (renders via remark-gfm) — but usually a tight list or prose reads better | Comparison queries; use sparingly |
 | **Video** | A YouTube thumbnail | A YouTube video, not a blog post | Out of scope for blog SEO |
 
 ---
@@ -37,11 +37,11 @@ So the two workable snippet shapes on this site are: **paragraph** (the quote bl
 
 This is the default shape and the natural target for **practice-guide** queries ("do affirmations work", "what is an affirmation"), **yes/no questions** ("can affirmations help anxiety"), and any "what is X" search. Google lifts a single paragraph and shows it.
 
-### Where the paragraph lives — the top quote block
+### Where the paragraph lives — the top blockquote
 
-Put the direct answer in a **`quote` block at the very top of the body**, before the first heading_2. The renderer styles the quote as a left-border italic "answer box," so the answer reads as a deliberate callout *and* is the first prose Google sees. This is the site's AnswerBox equivalent — and it's just a Notion block.
+Put the direct answer in a **Markdown blockquote (`> …`) at the very top of the body**, before the first `##`. The renderer styles the blockquote as a left-border italic "answer box," so the answer reads as a deliberate callout *and* is the first prose Google sees. This is the site's AnswerBox equivalent — and it's just a Markdown blockquote (there are no custom JSX components).
 
-There is no H1 in the body (the H1 comes from the Notion Title), so the quote really is the first prose after the title/hook (you may place a featured or inline image above it).
+There is no H1 in the body (the H1 comes from the frontmatter `title`), so the blockquote really is the first prose after the title/hook (you may place a featured or inline image above it).
 
 ### Anatomy of a winning paragraph snippet
 
@@ -49,22 +49,22 @@ There is no H1 in the body (the H1 comes from the Notion Title), so the quote re
 - **First sentence is the answer.** Pattern: `<Direct answer / one-line method / definition>.`
 - **Sentences 2-3 add the non-obvious.** The mechanism, a believable qualification, or the next-most-relevant tip.
 - **No "in this article" preamble.** Google strips the paragraph from context — it must stand alone.
-- **Plain prose.** No links, no bold, no nested lists inside the answer. (It's a quote block, which is fine — still a single liftable paragraph.)
+- **Plain prose.** No links, no bold, no nested lists inside the answer. (It's a blockquote, which is fine — still a single liftable paragraph.)
 - **Warm but honest.** AuraSyncs' empowering voice, but the claim has to be true — no toxic positivity, no guaranteed outcome, and any psychology/science claim verified per `accuracy-and-trust-skill.md`.
 
 ### Example (yes/no + mechanism answer)
 
-The Notion **Title** is `Do Affirmations Really Work? A Beginner's Guide`. Body opens with an image, then a quote block:
+The frontmatter **`title`** is `Do Affirmations Really Work? A Beginner's Guide`. Body opens with an image, then a blockquote:
 
 ```
 > Yes — affirmations can help, but not by magic. Repeating calm, believable statements about yourself gradually shifts your self-talk and lowers the grip of harsh inner criticism. They work best when the words feel within reach and you pair them with real action, not as a replacement for support when you're struggling.
 ```
 
-That quote is the snippet target. It's ~55 words, leads with the honest answer, names the mechanism (shifting self-talk), and adds the believability + "pair with action" qualifier. Any claim about how affirmations work must be verifiable per `accuracy-and-trust-skill.md` — no fabricated "studies show 90%…" stats.
+That blockquote is the snippet target. It's ~55 words, leads with the honest answer, names the mechanism (shifting self-talk), and adds the believability + "pair with action" qualifier. Any claim about how affirmations work must be verifiable per `accuracy-and-trust-skill.md` — no fabricated "studies show 90%…" stats.
 
 ### Example (definition answer)
 
-Notion **Title** `What Is a Positive Affirmation? A Simple Guide`. Body opens:
+Frontmatter **`title`** `What Is a Positive Affirmation? A Simple Guide`. Body opens:
 
 ```
 > A positive affirmation is a short, present-tense statement you say to yourself on purpose, like "I am calm" or "I can handle this." You repeat it to gently steer your self-talk toward something kinder and steadier. The most effective affirmations are believable and specific, not wishful — close enough to feel true today.
@@ -87,12 +87,12 @@ Leads with the definition, gives examples, adds the believability rule. Any fact
 
 ## The list snippet
 
-Google lifts a numbered or bulleted list. This is the core shape for **collections and sets** — "morning affirmations", "money affirmations", "affirmations for anxiety" — where the searcher wants a usable list of phrases. Notion list blocks (`bulleted_list_item`, `numbered_list_item`) render cleanly, so this shape is fully available and is the workhorse for collections and daily sets.
+Google lifts a numbered or bulleted list. This is the core shape for **collections and sets** — "morning affirmations", "money affirmations", "affirmations for anxiety" — where the searcher wants a usable list of phrases. Markdown lists (`-` bulleted, `1.` numbered) render cleanly, so this shape is fully available and is the workhorse for collections and daily sets.
 
 ### Anatomy of a winning list snippet
 
 - **6-8 items.** Fewer looks thin; more gets truncated.
-- **List title is a heading_2 phrased as the query.**
+- **List title is an `##` phrased as the query.**
 - **Each item is short** — under ~12 words. A complete affirmation, on its own line.
 - **Parallel grammar** — present-tense, first person, all framed the same way ("I am…", "I can…").
 - **No deep formatting inside items** — Google's snippet view drops nested lists, bold, and links. Keep each item short plain text.
@@ -131,11 +131,11 @@ Google rewards numbered lists slightly more often for "how to" and step queries;
 
 ---
 
-## A note on tables (don't use them here)
+## A note on tables (use them sparingly)
 
-Google sometimes lifts small tables, but **this site's Notion renderer has no table block** — a table simply doesn't render in the body. Don't fight the renderer. For any comparison or reference you'd reach for a table for ("affirmation vs mantra", "morning vs evening practice"), **reframe it as prose or a tight bulleted list** — which is what wins snippets on this site anyway and reads warmer.
+Google sometimes lifts small tables, and **GFM pipe tables do render here** (remark-gfm). But for an affirmations blog, a comparison usually reads warmer and wins more snippets as **prose or a tight bulleted list**. For "affirmation vs mantra" or "morning vs evening practice", reach for a list first; reserve a table for data that is genuinely 2-D.
 
-Example — instead of an affirmation-vs-mantra table, write:
+Example — an affirmation-vs-mantra comparison reads cleanly as a list:
 
 ```
 ## Affirmation vs mantra, at a glance
@@ -146,7 +146,7 @@ Example — instead of an affirmation-vs-mantra table, write:
 - Both are calming practices — pick whichever helps you settle.
 ```
 
-That bulleted list is liftable, on-brand, and renders cleanly — a table would not. (Tables are fine *inside these skill docs*; they are forbidden in shipped **post bodies** because the renderer drops them.)
+That bulleted list is liftable, on-brand, and reads warmer than a grid. If you do need a table, a GFM pipe table renders — just keep it for genuinely tabular reference, not as the default for every comparison.
 
 ---
 
@@ -156,12 +156,12 @@ Below or beside the snippet box, Google shows "People Also Ask" — expandable r
 
 ### How to capture PAA on this site
 
-Because there's **no FAQPage schema shipping today** (see the OPTIONAL section of `seo-and-schema-skill.md`), you capture PAA with a plain FAQ section built from Notion blocks in the body — not from any property.
+`FAQPage` JSON-LD is **not** emitted today (the route does emit `BlogPosting` + `BreadcrumbList` — see `seo-and-schema-skill.md`), so you capture PAA with a plain FAQ section written as Markdown in the body, not from any frontmatter key.
 
 1. **Research the PAA stack.** Search the target query, read the PAA box, write down the 5-8 questions Google shows, and click each to see the source page it pulled. Affirmation PAA is rich — e.g. "Do affirmations really work?", "How many times should I say an affirmation?", "What are the most powerful affirmations?", "Can affirmations help with anxiety?".
-2. **Add a `heading_2` titled "Frequently asked questions"** near the end of the body.
-3. **Phrase each question exactly as Google shows it, as a `heading_3`.**
-4. **Answer each in 40-60 words** of plain prose (a paragraph block) directly under the heading_3 — a self-contained, liftable answer, same discipline as the top quote block.
+2. **Add an `##` heading titled "Frequently asked questions"** near the end of the body.
+3. **Phrase each question exactly as Google shows it, as an `###` heading.**
+4. **Answer each in 40-60 words** of plain prose (a paragraph) directly under the `###` — a self-contained, liftable answer, same discipline as the top blockquote.
 
 ### Example
 
@@ -182,7 +182,7 @@ Short, present-tense phrases that acknowledge the feeling without denying it wor
 
 Each answer is 40-60 words, plain prose, self-contained — so any one can be lifted into a PAA box. Note the clinical topic carries the light "support, not a cure / see a professional" note. Make sure every claim is verifiable and every affirmation well-formed per `accuracy-and-trust-skill.md`.
 
-> Note: FAQPage rich results require FAQPage JSON-LD, which isn't emitted yet (see the OPTIONAL section of `seo-and-schema-skill.md`). The Notion FAQ section still earns PAA placement on its own; if/when FAQPage is wired up, the answer text must match these visible answers word-for-word.
+> Note: FAQPage rich results require FAQPage JSON-LD, which isn't emitted yet (`BlogPosting` + `BreadcrumbList` ARE auto-emitted; see `seo-and-schema-skill.md`). The body FAQ section still earns PAA placement on its own; if/when FAQPage is wired up, the answer text must match these visible answers word-for-word.
 
 ---
 
@@ -196,23 +196,23 @@ Before writing, decide which snippet you're targeting:
    - If a snippet box already shows → that's the shape Google has decided this query wants.
    - If no snippet → opportunity, but harder to predict which shape will win.
 3. **Build the matching structure:**
-   - Paragraph showing → top quote block, 40-60 words, plain prose.
-   - List showing → heading_2 (phrased as the query) + 6-8 short parallel affirmations in a Notion list.
-   - Table showing → reframe as a tight list/paragraph (no table block renders here).
-4. **Steal the format, beat the content.** If "do affirmations work" gets a paragraph snippet, your quote block beats the incumbent because it's honest (names the mechanism, doesn't over-promise), tighter, and warm enough that the click feels welcoming.
+   - Paragraph showing → top blockquote, 40-60 words, plain prose.
+   - List showing → `##` (phrased as the query) + 6-8 short parallel affirmations in a Markdown list.
+   - Table showing → usually best as a tight list/paragraph; a GFM table renders if the data is genuinely 2-D.
+4. **Steal the format, beat the content.** If "do affirmations work" gets a paragraph snippet, your blockquote beats the incumbent because it's honest (names the mechanism, doesn't over-promise), tighter, and warm enough that the click feels welcoming.
 
 ---
 
 ## Pre-publish snippet checklist
 
 - [ ] Snippet shape decided (paragraph / list)
-- [ ] Paragraph target sits in the **top quote block** of the body, above the first heading_2
+- [ ] Paragraph target sits in the **top blockquote** of the body, above the first `##`
 - [ ] Paragraph: 40-60 words, plain prose, no inline links/bold, no toxic-positivity or guaranteed-outcome framing
 - [ ] List: 6-8 short parallel affirmations (present tense, first person), numbered only if genuinely ordered
-- [ ] heading_2 above any list phrased close to the target query
-- [ ] No tables relied on for a snippet — comparisons reframed as prose/lists (the renderer drops tables)
+- [ ] `##` above any list phrased close to the target query
+- [ ] Comparisons default to prose/lists; a GFM table only where the data is genuinely 2-D (used sparingly)
 - [ ] Voice stays warm and empowering while the claim stays honest
-- [ ] PAA questions captured in a body `## Frequently asked questions` (heading_2 + heading_3 + 40-60 word paragraph answers), not a property
+- [ ] PAA questions captured in a body `## Frequently asked questions` (`##` + `###` + 40-60 word paragraph answers), not frontmatter
 - [ ] Clinical topics (anxiety, depression, grief, health) carry the light "support, not a replacement" note
 - [ ] Every psychology/scripture/health claim in a snippet target is correct per `accuracy-and-trust-skill.md`
 
@@ -220,11 +220,11 @@ Before writing, decide which snippet you're targeting:
 
 ## What kills snippet eligibility
 
-- The direct answer is buried under an "in this article we'll explore…" preamble instead of leading the quote block
-- The heading_2 above a list doesn't match the query
+- The direct answer is buried under an "in this article we'll explore…" preamble instead of leading the blockquote
+- The `##` above a list doesn't match the query
 - The opening paragraph runs past ~80 words
 - The answer paragraph contains inline links or bold
-- A table relied on for a snippet (it doesn't render — use a list instead)
+- A table where a tight list would win the snippet — for affirmations, a list usually beats a grid
 - The list items are full paragraphs of commentary, or break the first-person/present-tense rule
 - The page has zero internal links (Google rewards pages embedded in a topical hub — link ≥ 3 cluster siblings and the pillar)
 - The page isn't on page 1 yet — snippets only come from already-ranking pages

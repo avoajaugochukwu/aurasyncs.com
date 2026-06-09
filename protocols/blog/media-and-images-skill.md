@@ -1,6 +1,6 @@
 ---
 name: media-and-images
-description: Featured-image rules, alt-text-via-caption craft, captions, file naming, social-card dimensions, Notion image blocks, inline image placement, and licensing for aurasyncs.com. Images set the tone of an affirmations post — a calm, warm, on-theme visual signals care before a reader reads a word. One featured image per post for the header and index card, plus inline images pulled from Notion blocks, with descriptive alt text (carried by the image caption), sized so nothing shifts. Covers the discipline of media that signals quality to readers, helps accessibility, and feeds the SEO signals Google rewards.
+description: Featured-image rules, Markdown alt-text craft, file naming, social-card dimensions, Markdown image syntax, inline image placement, and licensing for aurasyncs.com. Images set the tone of an affirmations post — a calm, warm, on-theme visual signals care before a reader reads a word. One featured image per post (frontmatter `featuredImage`) for the header and index card, plus inline images placed with Markdown `![alt](…)`, with descriptive alt text, sized so nothing shifts. Covers the discipline of media that signals quality to readers, helps accessibility, and feeds the SEO signals Google rewards.
 ---
 
 # Media & Images — the visual layer
@@ -9,43 +9,36 @@ description: Featured-image rules, alt-text-via-caption craft, captions, file na
 
 ---
 
-## How images actually get into a post (the Notion pipeline)
+## How images actually get into a post (place files, reference in Markdown)
 
-Posts originate in a Notion database and are pulled into the repo by:
+Image files live under `public/blog/`, and you reference them from the post:
 
-```bash
-node --env-file=.env scripts/migrate-notion.mjs
-```
+- **Featured image** — set the frontmatter `featuredImage: "/blog/<slug>.webp"` (or omit it). The file lives at `public/blog/<slug>.webp`.
+- **Inline images** — place each in the body with Markdown: `![alt](/blog/<slug>-content-1.webp)`, `-content-2.webp`, and so on. The files live at `public/blog/<slug>-content-N.webp`.
 
-You do **not** hand-place files in `public/` or export at a target size. The migrate script does the mechanical work:
+You place the image files under `public/blog/` yourself (no Notion, no download-and-migrate step). The optional `scripts/gen-assets.mjs` can process assets — e.g. converting to WebP and capping the dimensions — but the file simply existing at the referenced path is what makes it render. There's no caption-as-alt indirection and no `image.__local` rewrite; the Markdown `src` path and `alt` are exactly what ship.
 
-- It reads the Notion **"Featured Image"** file property, **downloads** it, and writes it to `public/blog/<slug>.webp`. The post JSON gets `featuredImage: "/blog/<slug>.webp"`.
-- It walks the body, finds each **Notion image block**, **downloads** each one in order, and writes them to `public/blog/<slug>-content-1.webp`, `-content-2.webp`, `-content-3.webp`, and so on. It sets each block's `image.__local` to that local path.
-- Every download is run through **sharp**: resized to **max 1200 × 800** (`fit: inside`, no enlargement), converted to **WebP at quality 80**.
-
-So the authoring job is **choosing and captioning good images inside Notion**, not exporting files or naming them. The script handles resize, format, quality, naming, and the rewrite to local paths.
-
-`components/NotionRenderer.tsx` renders an image block with `next/image`: it uses `image.__local` if present, otherwise the remote Notion URL. The **alt text comes from the image block's caption** (and falls back to `"Affirmation illustration"` when there's no caption). A caption also renders visibly as a `<figcaption>`. `components/BlogPostCard.tsx` renders the index-card thumbnail from `featuredImage`.
+`components/MdxContent.tsx` maps Markdown `img` to `next/image`, using the path in the Markdown `src` and the **alt text from the Markdown alt** (falling back to `"Affirmation illustration"` when alt is empty). `app/blog/[slug]/page.tsx` renders the featured image in the header from `featuredImage`, and `components/BlogPostCard.tsx` renders the index-card thumbnail from `featuredImage`.
 
 ---
 
 ## The featured image
 
-Every post ships with one featured image, set in Notion as the **"Featured Image"** file property. After migration it lives at:
+Every post ships with one featured image, set in the frontmatter as `featuredImage`. The file lives at:
 
 ```
-public/blog/<slug>.webp   →   post JSON: featuredImage: "/blog/<slug>.webp"
+public/blog/<slug>.webp   →   frontmatter: featuredImage: "/blog/<slug>.webp"
 ```
 
-It is used for the **post header** (rendered above the body) and the **index-page card thumbnail** (`BlogPostCard.tsx`). The featured-image alt is set by the card to `Featured image for <title>` — there is no separate featured `alt` or `caption` field, so the image itself has to carry the meaning at a glance.
+It is used for the **post header** (rendered above the body) and the **index-page card thumbnail** (`BlogPostCard.tsx`). The featured-image alt is set by the card to `Featured image for <title>` — there is no separate featured `alt` field, so the image itself has to carry the meaning at a glance.
 
-> Note on social cards: a per-post `og:image` is **not currently wired** in the post route — Open Graph falls back to the site defaults. So the featured image is not yet guaranteed to be the social-share image. Treat per-post `og:image` as a **future enhancement**; don't author as if it already ships.
+> Note on social cards: a per-post `og:image` **is wired** — `app/blog/[slug]/page.tsx` emits OpenGraph (and a Twitter `summary_large_image` card) using the post's `featuredImage`. So the featured image **is** the social-share image; author as if it ships, because it does.
 
 ### Featured image rules
 
-- **Source quality first.** Provide a clean source image at least ~1200px on the long edge so the script's 1200 × 800 cap has real pixels to work with. A small, soft, or upscaled source stays soft after conversion.
-- **Aspect ratio: aim landscape, roughly 3:2.** The index card renders inside a fixed landscape frame (it object-covers a ~600 × 400 / 16:9-ish box) and the script fits inside 1200 × 800. A landscape source crops predictably; a tall portrait source gets center-cropped on the card and can lose its subject.
-- **Format/size: leave it to the script.** Don't pre-export to WebP or hand-tune quality — the migrate step does WebP q80 and the resize. Just give it a good, properly-licensed source.
+- **Source quality first.** Provide a clean source image at least ~1200px on the long edge so a 1200 × 800-ish target has real pixels to work with. A small, soft, or upscaled source stays soft.
+- **Aspect ratio: aim landscape, roughly 3:2.** The index card renders inside a fixed landscape frame (it object-covers a ~600 × 400 / 16:9-ish box). A landscape source crops predictably; a tall portrait source gets center-cropped on the card and can lose its subject.
+- **Format/size: WebP, ~1200 × 800.** Export (or run `scripts/gen-assets.mjs`) to WebP at around quality 80, capped near 1200 × 800. Place the result at `public/blog/<slug>.webp`. Just start from a good, properly-licensed source.
 - **On-theme, calm imagery > generic stock.** A warm, serene image that matches the post's feeling beats a generic "smiling person" stock shot. Stock clichés signal "any blog could have written this."
 - **Recognizable mood at a glance.** Even as a small thumbnail the featured image should read the theme: a soft sunrise for morning affirmations, hands resting over the heart for self-love, gentle light through a window for faith, a still lake for anxiety/calm.
 
@@ -65,7 +58,7 @@ The image sets the emotional tone before the words do. Match the visual to the t
 ### Avoid
 
 - **Cliché stock.** The "businessman jumping," the over-bright fake laughter, the lone "person at a desk." These are the strongest signals of low-effort content.
-- **Unreadable text-on-image.** Don't rely on the affirmation text baked into the picture — the script may downscale it and it won't be real, indexable text. Keep the words in the post body; let the image carry mood.
+- **Unreadable text-on-image.** Don't rely on the affirmation text baked into the picture — downscaling can soften it and it won't be real, indexable text. Keep the words in the post body; let the image carry mood.
 - **Harsh, clinical, or chaotic visuals** that fight the warm, calm house style — neon glare, busy collages, cold stock blue.
 
 ### When the post has no obvious image
@@ -80,70 +73,61 @@ Never use a generic "person at a desk" or stock-smile image as a filler.
 
 ---
 
-## Alt text craft (it lives in the caption)
+## Alt text craft (it's the Markdown image alt)
 
-On aurasyncs there is **no separate alt field**. The renderer derives alt text from the **Notion image block's caption**, and falls back to `"Affirmation illustration"` when a caption is missing. So **every meaningful image should have a caption**, and that caption does double duty: it's the visible `<figcaption>` *and* the alt text a screen reader announces. Write it as descriptive, keyword-aware prose.
-
-Because the caption is both visible and the alt, it should read well to a sighted reader and still describe the image faithfully for someone who can't see it.
+On aurasyncs the alt text is the **Markdown image alt** — the text inside the brackets of `![alt](/blog/<slug>-content-N.webp)`. The renderer uses it directly and falls back to `"Affirmation illustration"` when the alt is empty. So **every meaningful inline image should have descriptive alt text**, written as descriptive, keyword-aware prose for the screen-reader user and the crawler.
 
 ### Rules
 
-- **Describe the image, not the post.** The caption/alt is for someone who can't see the picture, not a place to keyword-stuff.
-- **Keep it tight, ~125 characters or so.** Screen readers and figcaptions both read better short; aim for one clear sentence.
+- **Describe the image, not the post.** The alt is for someone who can't see the picture, not a place to keyword-stuff.
+- **Keep it tight, ~125 characters or so.** Screen readers read better short; aim for one clear sentence.
 - **Sentence-case prose, not phrase fragments.** "A woman resting her hands over her heart in soft morning light" beats "self love affirmations confidence hands heart".
 - **Target the query naturally if relevant** — don't force it. If the image actually shows the theme, the honest description already carries the keyword.
-- **No "image of," "picture of," "photo of"** — the renderer wraps it in a `<figure>` and screen readers already announce it's an image.
-- **Leaning on the fallback is a last resort.** An uncaptioned image becomes alt `"Affirmation illustration"`, which helps no one — caption it instead.
+- **No "image of," "picture of," "photo of"** — screen readers already announce it's an image.
+- **Leaning on the fallback is a last resort.** An image with empty alt becomes `"Affirmation illustration"`, which helps no one — write real alt instead.
 
 ### Examples
 
-| Image | Good caption / alt | Bad caption / alt |
+| Image | Good alt | Bad alt |
 |---|---|---|
 | Featured for a morning-affirmations post | "A calm sunrise over a still lake, soft golden light starting the day." | "morning affirmations daily positive sunrise best" |
 | Inline in a self-love collection | "A person resting both hands gently over their heart in warm window light." | "self love affirmations woman happy" |
 | Inline in a faith / scripture set | "An open book on a wooden table with soft light falling across the pages." | "bible affirmations scripture faith verses" |
 | Inline in an anxiety / calm guide | "Still water under a quiet morning sky, a few slow ripples spreading out." | "anxiety affirmations calm relax" |
 
-### Keep each caption distinct
+### Keep each alt distinct
 
-If a post has several inline images, give each its **own** caption describing that specific image. Don't paste the same line under every picture — repeated identical alt text is noise to a screen reader and a wasted signal to search.
-
----
-
-## Captions (visible figcaptions)
-
-A caption is the same string that becomes the alt text — it renders under the image as a `<figcaption>`. Because it's load-bearing for accessibility, treat captions as **recommended on essentially every meaningful image**, not optional decoration.
-
-### When to caption
-
-- **Always when the image carries meaning** — which on this site is almost always, since the caption is also the alt text.
-- **Always for sourced or licensed images** — name the source/attribution the license requires, right in the caption.
-- **Add value where you can** — a caption can gently reinforce the theme or tie the image to the affirmation it sits near, as long as it still honestly describes the picture.
-
-### Caption format
-
-- Sentence-case prose, a complete sentence preferred.
-- Keep it short (~125 chars for the alt-text sweet spot; hard ceiling ~200).
-- Include source/attribution where the license requires it.
-- It's a Notion caption — no Markdown italics needed; the renderer styles the `<figcaption>`.
-
-### Examples
-
-> A calm sunrise over a still lake, with soft golden light spreading across the water.
-
-> Soft hands resting over the heart — a quiet gesture for self-love affirmations.
-
-> Photo by [name] on Unsplash, used here for a gentle morning scene.
+If a post has several inline images, give each its **own** alt describing that specific image. Don't paste the same line into every `![…]` — repeated identical alt text is noise to a screen reader and a wasted signal to search.
 
 ---
 
-## File naming (handled for you)
+## Attribution (where a license requires it)
 
-You don't name image files by hand — the migrate script does, from the slug. Knowing the convention helps you sanity-check the output:
+There is **no separate visible caption / `<figcaption>`** on this renderer — the Markdown `img` maps straight to `next/image`, so the alt text is the only string attached to each image. Where a license requires visible attribution, add it as a short Markdown line directly beneath the image (e.g. an italic credit), since the alt text alone isn't displayed to sighted readers.
 
-- **Featured:** `public/blog/<slug>.webp` → post JSON `featuredImage: "/blog/<slug>.webp"`.
-- **Inline (body) images:** `public/blog/<slug>-content-N.webp`, where `N` is `1, 2, 3…` in the order the image blocks appear in the Notion body. The first image block becomes `-content-1.webp`, the second `-content-2.webp`, and so on.
-- **Format is always `.webp`** after migration, regardless of the source format.
+### Attribution format
+
+- A short Markdown line under the image — e.g. `*Photo by [name] on Unsplash.*`
+- Keep it to the credit the license actually requires; don't clutter every image.
+- Keep alt text and attribution separate: the alt describes the picture; the line credits the source.
+
+### Example
+
+```markdown
+![A calm sunrise over a still lake, soft golden light spreading across the water.](/blog/morning-affirmations-content-1.webp)
+
+*Photo by [name] on Unsplash.*
+```
+
+---
+
+## File naming (name them from the slug)
+
+Name image files yourself from the slug, then reference them in the post. The convention:
+
+- **Featured:** `public/blog/<slug>.webp` → frontmatter `featuredImage: "/blog/<slug>.webp"`.
+- **Inline (body) images:** `public/blog/<slug>-content-N.webp`, where `N` is `1, 2, 3…` in the order the images appear in the body. The first inline image is `-content-1.webp`, the second `-content-2.webp`, and so on.
+- **Format is `.webp`** — export (or run `scripts/gen-assets.mjs`) to WebP regardless of the source format.
 
 Example for a morning-affirmations post (slug `morning-affirmations-to-start-your-day`):
 
@@ -154,19 +138,19 @@ public/blog/morning-affirmations-to-start-your-day-content-2.webp   (second inli
 public/blog/morning-affirmations-to-start-your-day-content-3.webp   (third, etc.)
 ```
 
-To re-order or replace an inline image, change the **image blocks in Notion** and re-run the migrate script — don't rename files in `public/blog/` by hand, since the next migration will regenerate them from the Notion order.
+To re-order or replace an inline image, swap the file under `public/blog/` and update the matching `![alt](…)` reference in the body — keep the `-content-N` numbers in sync with the order the images appear.
 
 ---
 
-## Embedding images in the body (Notion image blocks)
+## Embedding images in the body (Markdown)
 
-In the body, images are **Notion image blocks** — you add them in Notion, not as Markdown or JSX. After migration the renderer turns each block into a `next/image` inside a `<figure>`, using the downloaded local path (`image.__local`) and the caption.
+In the body, images are plain **Markdown**: `![alt](/blog/<slug>-content-N.webp)`, placed where you want them in the flow. `components/MdxContent.tsx` maps each to a `next/image`.
 
 ### Rules
 
-- **Add images as Notion image blocks**, placed where you want them in the flow. There is no Markdown `![ ]` step and no `<Image>` component to call.
-- **Always write a caption** on each image block — it's both the visible figcaption and the alt text. Apply the full alt-text discipline above (descriptive, ~125 chars, no keyword stuffing, no "image of").
-- **Local paths are automatic.** The script downloads remote Notion images and rewrites them to `/blog/<slug>-content-N.webp`. You don't hotlink and you don't manage URLs.
+- **Add images with Markdown `![alt](/blog/<slug>-content-N.webp)`**, placed where you want them. There's no Notion step and no `<Image>` JSX component to call.
+- **Always write descriptive alt** inside the brackets — it's the alt text the renderer uses. Apply the full alt-text discipline above (descriptive, ~125 chars, no keyword stuffing, no "image of").
+- **Use the local path** under `public/blog/` — `/blog/<slug>-content-N.webp`. You don't hotlink and you don't manage remote URLs.
 - **Don't re-embed the featured image in the body.** The route already renders it in the header; a duplicate in the body is redundant.
 
 ---
@@ -216,14 +200,14 @@ Every image on the site needs a clear license source. Options:
 - Commissioned work with a usage license
 - Public domain (clearly marked)
 
-**Keep license proof in `/private/licenses/<image-slug>.txt` (out of the public repo if confidentiality matters).**
+**Keep license proof somewhere durable and private (out of the public repo if confidentiality matters) — a license-tracking note or store of your choosing.**
 
 ### Tier 3 — Free with attribution
 - Unsplash / Pexels photos (free; attribution recommended)
 - Wikimedia Commons (varies by image)
 - Public-domain reference imagery
 
-**The caption must include attribution per the license's requirements** — and since the caption is also the alt text, keep attribution short and tacked to the description.
+**Add the required attribution as a short Markdown line beneath the image** (see "Attribution" above), per the license's requirements — keep it short.
 
 ### Tier 4 — Don't ship
 - Any image found via image search with no clear license
@@ -242,7 +226,7 @@ A nuanced area. Many sites use Midjourney, DALL·E, or Stable Diffusion for calm
 ### Rules
 
 - Check the generator's terms of service for commercial use.
-- Disclose AI generation in the caption when material — e.g. "Illustration generated with an AI tool." (Remember the caption is also the alt text, so keep it natural.)
+- Disclose AI generation when material — e.g. an italic Markdown line beneath the image, "Illustration generated with an AI tool." (Keep it separate from the descriptive alt text.)
 - **Never use AI-generated images of real people** (consent and likeness issues) — this matters for testimonial-style or "real person" framing.
 - For YMYL trust, don't use AI to fabricate anything that reads as evidence (fake "before/after," fake people, fake scenes presented as real).
 - Quality bar: if the image has the AI "tells" (extra fingers, melted edges, garbled text), don't ship it.
@@ -251,47 +235,47 @@ A nuanced area. Many sites use Midjourney, DALL·E, or Stable Diffusion for calm
 
 ## Featured image and social sharing
 
-The featured image is the post header and the index-card thumbnail. It is **not yet** guaranteed to be the social-share image: per-post `og:image` is **not currently wired** in the route, so Open Graph falls back to the site defaults.
+The featured image is the post header, the index-card thumbnail, **and the social-share image**: `app/blog/[slug]/page.tsx` wires per-post `og:image` from `featuredImage` and ships a Twitter `summary_large_image` card, so shares on social platforms use the post's own image.
 
 - Make the **header / index thumbnail** work: recognizable, calm, on-theme at small sizes.
-- Provide a good landscape source so the card crop stays centered on the subject.
-- **Future enhancement:** wire per-post `og:image` from `featuredImage` so shares on social platforms use the post's own image. Until that lands, don't author copy or checklists that assume the featured image is the social card.
+- Provide a good landscape source so the card crop stays centered on the subject — it doubles as the social card.
+- Because `featuredImage` *is* the OG/Twitter image, it's worth making sure it reads well at social-card dimensions too, not just as a thumbnail.
 
 ---
 
 ## Decorative graphics, icons, dividers
 
-A clean blog doesn't need extra decorative clutter. Sections are separated by H2 headings and the rhythm of the real images, not by horizontal-rule graphics or fancy dividers. The renderer supports a plain `divider` block (`<hr>`) where a visual break helps — that's enough. Don't add competing decoration inside the post body.
+A clean blog doesn't need extra decorative clutter. Sections are separated by `##` headings and the rhythm of the real images, not by horizontal-rule graphics or fancy dividers. The renderer styles a Markdown thematic break (`---` → `<hr>`) where a visual break helps — that's enough. Don't add competing decoration inside the post body.
 
 ---
 
 ## Image performance
 
-Images are usually the largest assets on a page. The migrate script already helps a lot — WebP at quality 80, capped at 1200 × 800 — but you still influence the outcome:
+Images are usually the largest assets on a page. Exporting to WebP at quality 80, capped at ~1200 × 800 (by hand or via `scripts/gen-assets.mjs`), already helps a lot — but you still influence the outcome:
 
-- **Give a reasonably-sized source**, not a 6000px camera original — the script will resize, but a sane source keeps the pipeline fast.
+- **Start from a reasonably-sized source**, not a 6000px camera original, and cap it near 1200 × 800 on export — a sane size keeps pages fast.
 - **Don't over-image.** A text-forward affirmations post rarely needs more than a handful of inline images; each one is bytes the reader downloads.
 - **Prefer simple, calm compositions** — they compress smaller in WebP than busy, high-detail frames.
-- **Trust the conversion.** Since the script standardizes format/size/quality, the lever you control is *how many* images and *how good the sources are*, not export settings.
+- **Standardize format/size/quality** — WebP, ~q80, capped near 1200 × 800. The biggest levers are *how many* images you use and *how good the sources are*.
 
 ---
 
 ## Pre-publish media checklist
 
-- [ ] "Featured Image" file property set in Notion (so migration produces `public/blog/<slug>.webp` and `featuredImage: "/blog/<slug>.webp"`)
+- [ ] `featuredImage: "/blog/<slug>.webp"` set in frontmatter, with the file placed at `public/blog/<slug>.webp`
 - [ ] Featured source is landscape-ish (~3:2) and at least ~1200px on the long edge
 - [ ] Featured image is calm, warm, and on-theme — not cliché stock, not text-on-image
-- [ ] Featured image reads well at thumbnail size and on both light and dark themes
-- [ ] Every inline image is a Notion image block (no Markdown/JSX, no manual file placement)
-- [ ] Every meaningful image has a descriptive, keyword-aware **caption** (it's the alt text too)
+- [ ] Featured image reads well at thumbnail size, as a social card, and on both light and dark themes
+- [ ] Every inline image is Markdown `![alt](/blog/<slug>-content-N.webp)`, with the file placed under `public/blog/`
+- [ ] Every meaningful image has descriptive, keyword-aware **alt text** in the `![…]` brackets
 - [ ] No image relies on the `"Affirmation illustration"` fallback alt
-- [ ] Each inline image's caption is distinct — no copy-pasted identical alt text
-- [ ] No caption is keyword-stuffed; none start with "image of / picture of / photo of"
+- [ ] Each inline image's alt is distinct — no copy-pasted identical alt text
+- [ ] No alt is keyword-stuffed; none start with "image of / picture of / photo of"
 - [ ] Featured image is not also re-embedded in the body
-- [ ] License source clear for every image; attribution in the caption where required
-- [ ] No AI-generated images of real people; AI disclosed in the caption when material
-- [ ] Migrate script run (`node --env-file=.env scripts/migrate-notion.mjs`) so all images are downloaded and rewritten to local paths
-- [ ] Heads-up: per-post `og:image` is not wired yet — don't assume the featured image is the social card
+- [ ] License source clear for every image; attribution added as a Markdown line beneath the image where required
+- [ ] No AI-generated images of real people; AI disclosed (Markdown line beneath the image) when material
+- [ ] Image files exported to WebP (~q80, ~1200 × 800), by hand or via `scripts/gen-assets.mjs`
+- [ ] `featuredImage` is the per-post `og:image`/Twitter card — make sure it works as a social share image
 
 ---
 

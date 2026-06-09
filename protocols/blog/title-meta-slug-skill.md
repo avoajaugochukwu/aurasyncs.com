@@ -1,26 +1,26 @@
 ---
 name: title-meta-slug
-description: The title artifacts every aurasyncs.com post has and how each one is different. In this project the Notion **Title** property is BOTH the on-page H1 AND the meta title (one field), **Meta Description** is the SERP snippet (150–160), and **Excerpt** is the on-page hook — they are SEPARATE properties. The **Slug** is permanent. Lazy writers paste the same string everywhere; real writers tune the Title for the SERP, write a distinct Meta Description that earns the click, and a warm Excerpt that hooks the reader.
+description: The title artifacts every aurasyncs.com post has and how each one is different. In this project the `title` frontmatter field is BOTH the on-page H1 AND the meta title (one field), `metaDescription` is the SERP snippet (150–160), and `excerpt` is the on-page hook — they are SEPARATE frontmatter keys. The slug is the `.mdx` filename and is permanent. Lazy writers paste the same string everywhere; real writers tune the `title` for the SERP, write a distinct `metaDescription` that earns the click, and a warm `excerpt` that hooks the reader.
 ---
 
 # Title, Meta, Slug — the artifacts
 
-> On most sites the H1 and the meta title are separate fields. On **aurasyncs they collapse**: the Notion **Title** property does double duty as the H1 *and* the meta title. But the description does NOT collapse — **Meta Description** (the SERP snippet, 150–160 chars) and **Excerpt** (the on-page hook) are **separate properties**. Treat each piece with its own rules, knowing the Title is doing two jobs at once.
+> On most sites the H1 and the meta title are separate fields. On **aurasyncs they collapse**: the `title` frontmatter field does double duty as the H1 *and* the meta title. But the description does NOT collapse — `metaDescription` (the SERP snippet, 150–160 chars) and `excerpt` (the on-page hook) are **separate frontmatter keys**. Treat each piece with its own rules, knowing the `title` is doing two jobs at once.
 
 ---
 
 ## The artifacts at a glance
 
-| Artifact | Lives in (Notion property) | Doubles as | Max length | Purpose |
+| Artifact | Lives in (frontmatter key) | Doubles as | Max length | Purpose |
 |---|---|---|---|---|
-| **Title** | `Title` | On-page H1 **and** SERP/`<title>` meta title | ≤ 60 chars | The heading the reader sees AND what Google shows in results |
-| **Meta description** | `Meta Description` | SERP snippet only | 150–160 chars | The snippet under the title in search results |
-| **Excerpt** | `Excerpt` | On-page hook / dek only | ~1–2 sentences | The warm orienting line on the page (not the SERP) |
-| **URL slug** | `Slug` (= `content/posts/<slug>.json` filename) | — | ≤ 60 chars | The permanent URL |
+| **Title** | `title` | On-page H1 **and** SERP/`<title>` meta title | ≤ 60 chars | The heading the reader sees AND what Google shows in results |
+| **Meta description** | `metaDescription` | SERP snippet only | 150–160 chars | The snippet under the title in search results |
+| **Excerpt** | `excerpt` | On-page hook / dek only | ~1–2 sentences | The warm orienting line on the page (not the SERP) |
+| **URL slug** | the `.mdx` filename (`content/posts/<slug>.mdx`) — no `slug` frontmatter field | — | ≤ 60 chars | The permanent URL |
 
-There is **no separate meta-title or og-title property** — the route derives `<title>`, canonical, and (if ever wired) Open Graph from the **Title** + **Meta Description**. Don't look for one; the single Title field is both surfaces. The featured-image property is **Featured Image** (a file rendered at `/blog/<slug>.webp`). There is **no `dateModified`/`lastUpdated` property** — Notion carries **Created**, and you track later updates via git, not a property.
+There is **no separate `metaTitle` or `ogTitle` key** — the route derives `<title>`, canonical, and the Open Graph / Twitter title from `title` + `metaDescription` (both auto-emitted). Don't look for one; the single `title` field is both surfaces. The featured image is the `featuredImage` frontmatter key (`/blog/<slug>.webp`). There is **no `dateModified` key** — but `lastEditedTime` feeds `dateModified`/`og:modifiedTime`, and `createdTime` is the publish date.
 
-> One existing-content gotcha: several live posts have a **Meta Description of only ~100 chars** (truncated). When you touch any post, lengthen it to the full 150–160 band — see the Meta Description rules below.
+> One existing-content gotcha: several live posts have a `metaDescription` of only ~100 chars (truncated). When you touch any post, lengthen it to the full 150–160 band — see the `metaDescription` rules below.
 
 ---
 
@@ -35,7 +35,7 @@ Because one property is both surfaces, the title has to satisfy two readers at o
 - **No brand suffix** — do **not** append `| AuraSyncs`. There is no separate meta title to brand, and the suffix eats your 60-char budget.
 - **Title Case or sentence case** — pick one for the site and stay consistent.
 - **A modifier that signals what's inside** is welcome when it fits in 60 chars — a count (`25+`, `40+`, `365`), an audience (`for Women`, `for Kids`), or a payoff (`to Calm Your Mind`, `to Build Self-Esteem`).
-- **Match the slug and Meta Description** — all three describe the same page and share the query.
+- **Match the slug and `metaDescription`** — all three describe the same page and share the query.
 - **Stay warm.** This is AuraSyncs' warm, empowering, plain voice. "Affirmations for Anxiety: 25+ Calming Phrases to Quiet Your Mind" reads friendlier than "Anxiety Affirmation Compendium: A Methodology".
 
 ### Title patterns by content type
@@ -86,7 +86,7 @@ Positive Affirmations: The Complete Guide to Daily Practice
 - Vague: "Some Thoughts on Feeling More Positive"
 - Brand-first or brand-suffixed: "AuraSyncs: Affirmations for Anxiety" or "… | AuraSyncs" — no brand in the title at all.
 - Over 60 chars (the audit catches this — it truncates the SERP title and bloats the H1).
-- An H1 inside the body — the Title property already renders the page H1, and a body `heading_1` styles as `<h2>` anyway.
+- An H1 inside the body — the `title` frontmatter already renders the page H1, so use `##`/`###` in the body; a stray `#` H1 maps to `<h2>` anyway (no `#` H1 in the body).
 - A claim the post can't deliver, or one that over-promises an outcome ("Affirmations That Guarantee You'll Get Rich" — never guarantee a result; see `accuracy-and-trust-skill.md`).
 
 ### When to iterate the title
@@ -95,9 +95,9 @@ If a post ranks but doesn't get clicked, the title is the lever (it is your only
 
 ---
 
-## The meta description (the Meta Description property)
+## The meta description (the `metaDescription` frontmatter key)
 
-`Meta Description` is emitted as the meta description and shown as the SERP snippet under the title. It doesn't directly rank, but it drives click-through — so it has to sell the click in 150–160 characters.
+`metaDescription` is emitted as the meta description and shown as the SERP snippet under the title. It doesn't directly rank, but it drives click-through — so it has to sell the click in 150–160 characters.
 
 ### Rules
 
@@ -107,7 +107,7 @@ If a post ranks but doesn't get clicked, the title is the lever (it is your only
 - **Specific, not abstract** — name the payoff: how many affirmations, how they're grouped, how to use them, the audience.
 - **No HTML, no Markdown** — plain text only.
 - **Stands alone** — it should make sense in the SERP without the title above it.
-- **Distinct from Excerpt** — these are different properties shown in different places; don't paste the same string into both.
+- **Distinct from `excerpt`** — these are different frontmatter keys shown in different places; don't paste the same string into both.
 - **No guaranteed-outcome language** — for money/manifestation/health, describe the practice, never promise the result.
 
 ### Meta description patterns
@@ -144,14 +144,14 @@ Do affirmations really work? Here's what the psychology actually says, how to wr
 
 ## The excerpt (on-page hook)
 
-The `Excerpt` is the warm 1–2 sentence hook shown on the page (and in post listings), *not* the SERP snippet. It's where AuraSyncs' warm, empowering voice gets to shine — encouraging, inclusive, never salesy.
+The `excerpt` is the warm 1–2 sentence hook shown on the page (and in post listings), *not* the SERP snippet. It's where AuraSyncs' warm, empowering voice gets to shine — encouraging, inclusive, never salesy.
 
 ### Rules
 
 - **1–2 sentences**, friendly and inviting.
 - **Talk to the reader** ("you", "your"). Warm and steady, never hype.
 - **Include the primary keyword once**, naturally.
-- **Don't just repeat the Meta Description** — this one can be warmer since it's read on-page, not in a results list.
+- **Don't just repeat the `metaDescription`** — this one can be warmer since it's read on-page, not in a results list.
 - **Write one** — a good hook lifts on-page engagement.
 
 Example for "affirmations for anxiety":
@@ -162,14 +162,14 @@ Example for "affirmations for anxiety":
 
 ## The URL slug
 
-The slug is **permanent**. Changing it after publish requires a 301 redirect and loses some SEO equity. Get it right the first time.
+The slug **is the `.mdx` filename** — `content/posts/<slug>.mdx` resolves to `/blog/<slug>`. There is **no `slug` frontmatter field**; you set the slug by naming the file. The slug is **permanent** — changing it (renaming the file) after publish requires a 301 redirect and loses some SEO equity. Get it right the first time.
 
 ### Rules
 
 - **Kebab-case:** `affirmations-for-anxiety-finding-peace-inner-calm`, never `Affirmations_For_Anxiety` or `affirmationsForAnxiety`.
 - **Front-load the keyword:** `money-affirmations-for-financial-abundance` not `attract-wealth-the-easy-way`.
 - **Drop stop words unless load-bearing:** `morning-affirmations-for-women` beats `the-best-affirmations-to-say-each-morning`. Keep words that change meaning or are part of the query.
-- **No dates** — there is no modified-date property; keep the slug evergreen and update the body over time.
+- **No dates** — keep the slug evergreen and update the body over time (currency is tracked via `lastEditedTime`, not the slug).
 - **No numbers** unless the number is core (`365-daily-affirmations-year-of-empowering-words` — the count *is* the query).
 - **No filler suffixes** in general (`-article`, `-post`) — but a short descriptive tail (`-calm-your-mind`, `-for-financial-abundance`) is fine and is used across this site to disambiguate.
 - **No leading/trailing hyphens. All lowercase. Under 60 chars** ideally, under 80 max. (Some real slugs run long — `chakra-affirmations-balance-your-energy-centers-for-healing-and-harmony` — keep new ones tighter where you can.)
@@ -191,9 +191,10 @@ The slug is **permanent**. Changing it after publish requires a 301 redirect and
 
 Almost never. If you must:
 
-1. Add a 301 redirect from old to new in `next.config.js`.
-2. Update all internal links from old slug to new slug (grep `content/posts/` for the old `/blog/<slug>` href), and the entry in `content/posts/_index.json`.
-3. Update the sitemap.
+1. Rename the `.mdx` file in `content/posts/` (the filename *is* the slug).
+2. Add a 301 redirect from old to new in `next.config.js`.
+3. Update all internal links from old slug to new slug (grep `content/posts/` for the old `/blog/<slug>` Markdown link).
+4. Update the sitemap.
 
 Cost of a slug change: 1–3 months of partial ranking dilution. Don't do it casually.
 
@@ -203,22 +204,22 @@ Cost of a slug change: 1–3 months of partial ranking dilution. Don't do it cas
 
 The target query should appear in:
 
-1. **Title** (verbatim or close, front-loaded — covers both the H1 and the meta title).
-2. **Meta Description** (once, naturally — the SERP snippet).
-3. **Slug** (verbatim or close, front-loaded).
-4. **First paragraph** of the body — i.e. the answer **quote block** (within the first ~100 words).
-5. **At least one heading_2** (verbatim or close).
-6. **Featured Image alt / surrounding text** (naturally, if it fits).
+1. **`title`** (verbatim or close, front-loaded — covers both the H1 and the meta title).
+2. **`metaDescription`** (once, naturally — the SERP snippet).
+3. **Slug** (the filename — verbatim or close, front-loaded).
+4. **First paragraph** of the body — i.e. the answer **blockquote** (`> …`, within the first ~100 words).
+5. **At least one `##` heading** (verbatim or close).
+6. **`featuredImage` alt / inline image alt or surrounding text** (naturally, if it fits).
 
-Do this naturally; don't stuff. If the query is "affirmations for anxiety" and a heading_2 reads "How to use these affirmations for anxiety," that repetition is fine.
+Do this naturally; don't stuff. If the query is "affirmations for anxiety" and a `##` heading reads "How to use these affirmations for anxiety," that repetition is fine.
 
 ---
 
 ## Brand placement
 
-- **Site name** in `Title`: no — there is no separate meta title to carry it.
-- **Site name** in `Slug`: no.
-- **Site name** in `Meta Description`/`Excerpt`: only if it genuinely adds warmth or credibility. Usually skip it.
+- **Site name** in `title`: no — there is no separate meta title to carry it.
+- **Site name** in the slug (filename): no.
+- **Site name** in `metaDescription`/`excerpt`: only if it genuinely adds warmth or credibility. Usually skip it.
 
 ---
 
@@ -228,7 +229,7 @@ Across the site:
 
 - **Capitalization consistency** — pick title case or sentence case for titles and stick to it.
 - **Slug pattern consistency** — within a content type, slugs follow the same pattern (see the table).
-- **Query consistency** — the Title, Meta Description, and Slug all describe the same page and share the target query.
+- **Query consistency** — the `title`, `metaDescription`, and slug all describe the same page and share the target query.
 - **Voice consistency** — warm, empowering, inclusive, plain (~grade 7); no stiff or salesy language (see `protocols/site-voice-profile.md`).
 
 ---
@@ -237,12 +238,12 @@ Across the site:
 
 The pre-publish audit checks the four artifacts:
 
-- [ ] **Title** set, ≤ 60 chars, includes the target query, no brand suffix, no H1 duplicated in the body.
-- [ ] **Meta Description** set, 150–160 chars (lengthen any ~100-char description), includes the target query, no "in this article" preamble, not a verbatim copy of the Title, no guaranteed-outcome language.
-- [ ] **Excerpt** set as a warm on-page hook, distinct from Meta Description.
-- [ ] **Slug** kebab-case, no dates, front-loaded query; matches the `content/posts/<slug>.json` filename.
+- [ ] **`title`** set, ≤ 60 chars, includes the target query, no brand suffix, no H1 duplicated in the body.
+- [ ] **`metaDescription`** set, 150–160 chars (lengthen any ~100-char description), includes the target query, no "in this article" preamble, not a verbatim copy of the `title`, no guaranteed-outcome language.
+- [ ] **`excerpt`** set as a warm on-page hook, distinct from `metaDescription`.
+- [ ] **Slug** kebab-case, no dates, front-loaded query; *is* the `content/posts/<slug>.mdx` filename (no `slug` frontmatter field).
 - [ ] All artifacts include the target query (verbatim or close paraphrase) and describe the same page.
-- [ ] No phantom properties relied on (no separate metaTitle/ogTitle, no dateModified) — use Title, Meta Description, Excerpt, Slug, Featured Image, Created.
+- [ ] No phantom keys relied on (no separate `metaTitle`/`ogTitle`, no `slug` field, no `dateModified`) — use `title`, `metaDescription`, `excerpt`, the filename slug, `featuredImage`, `createdTime`/`lastEditedTime`.
 
 ---
 

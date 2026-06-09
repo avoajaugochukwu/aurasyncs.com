@@ -1,6 +1,6 @@
 ---
 name: blog-os-master
-description: Complete blog writing system adapted from 4,000+ real faceless YouTube scripts and rebuilt for Google-grade web pages. Tuned for aurasyncs.com — a positive-affirmations blog for people searching for the right words for a specific need (self-love, anxiety, confidence, money & manifestation, faith, sleep, work, morning routines, and for women, men, kids, and teens). Enforces the Notion output contract (posts authored in Notion → pulled into content/posts/<slug>.json by scripts/migrate-notion.mjs → rendered by components/NotionRenderer.tsx; H1 from the Title property; quote block = answer box; callout = tip; supported Notion blocks only; no tables in bodies; no JSON-LD shipping yet), well-formed affirmations and correct terminology, the anti-AI-slop checklist, E-E-A-T trust signals, the accuracy & trust gate (every affirmation is well-formed and non-harmful, every psychology/scripture/health claim is verifiable, no fabricated facts or fake "studies show 90%…" statistics, affirmations support but never replace professional care), and a mandatory re-audit before output. Pairs with the BlogOS skill pack.
+description: Complete blog writing system adapted from 4,000+ real faceless YouTube scripts and rebuilt for Google-grade web pages. Tuned for aurasyncs.com — a positive-affirmations blog for people searching for the right words for a specific need (self-love, anxiety, confidence, money & manifestation, faith, sleep, work, morning routines, and for women, men, kids, and teens). Enforces the MDX output contract (posts are plain-Markdown .mdx files in content/posts/, frontmatter via gray-matter, body rendered by next-mdx-remote with remark-gfm and a fixed component map; H1 from the title frontmatter; a leading blockquote = answer box; no custom JSX components; GFM tables allowed but used sparingly; BlogPosting + BreadcrumbList JSON-LD auto-emitted), well-formed affirmations and correct terminology, the anti-AI-slop checklist, E-E-A-T trust signals, the accuracy & trust gate (every affirmation is well-formed and non-harmful, every psychology/scripture/health claim is verifiable, no fabricated facts or fake "studies show 90%…" statistics, affirmations support but never replace professional care), and a mandatory re-audit before output. Pairs with the BlogOS skill pack.
 ---
 
 # BlogOS — Master System
@@ -19,60 +19,57 @@ Three rules sit above everything else in this pack:
 
 ---
 
-## OUTPUT MODE — NOTION-NATIVE BLOCKS (PROJECT DEFAULT, STRONG)
+## OUTPUT MODE — MDX, PLAIN MARKDOWN ELEMENTS ONLY (PROJECT DEFAULT, STRONG)
 
-**This project has exactly one home for a post: a row in the Notion content database, whose body is Notion blocks.** There is no MDX, no React template per post. A post becomes a live page through this pipeline:
+**This project has exactly one output mode: a plain-Markdown `.mdx` file.** No alternatives, no "version A vs B". The extension is `.mdx`, but you write it like Markdown — no invented JSX tags.
 
-1. **Author in Notion.** A page in the Notion database (the source of truth) with the post's properties filled in and its body written as Notion blocks. Set `Status` to **Done** to publish.
-2. **Pull into the repo.** `node --env-file=.env scripts/migrate-notion.mjs` queries every `Done` page, writes each to `content/posts/<slug>.json` (a `blocks` array plus metadata), downloads the featured image to `public/blog/<slug>.webp` and each in-body image to `public/blog/<slug>-content-N.webp`, and rebuilds `content/posts/_index.json`.
-3. **Render.** `app/blog/page.tsx` lists posts from the local JSON via `lib/posts.ts`. `app/blog/[slug]/page.tsx` renders the page — the `<h1>` from the **Title** property and the body through `components/NotionRenderer.tsx`. (Note: the `[slug]` route currently still reads live from Notion; the index reads local JSON. The migration is mid-flight. Either way, Notion is the authoring source and the migrate script is the publish step.)
+The writer's output is a single `.mdx` file written to `content/posts/<slug>.mdx` — a flat directory, one file per post. It starts with the YAML frontmatter delimiter (`---`) and ends with the last line of the body. Nothing precedes the frontmatter; nothing follows the body. **The slug is the filename** — there is no Notion, no database, no build/migrate step, and no `status` field. The file existing in `content/posts/` is what publishes it.
 
-So the writer's deliverable is **a post in Notion-native form**: the property set ("frontmatter") plus a body built only from the Notion blocks the renderer supports. A `/b-write` command may *also* emit the `content/posts/<slug>.json` directly for a repo preview (see the JSON note below), but the canonical artifact is the Notion page.
+`lib/posts.ts` reads each file with **`gray-matter`** (frontmatter → fields, body → `content`). `app/blog/[slug]/page.tsx` renders the `<h1>` from the frontmatter `title`, runs the body through **`next-mdx-remote/rsc` `<MDXRemote>`** (`components/MdxContent.tsx`) with **`remark-gfm`** and a fixed component map, and **auto-emits a `BlogPosting` JSON-LD block and a `BreadcrumbList` JSON-LD block**, plus canonical, OpenGraph (with a per-post og:image from `featuredImage`), and a Twitter card. (Project assets are handled by `scripts/gen-assets.mjs`; you just drop images under `public/blog/`.)
 
-### Property contract ("frontmatter")
+### Frontmatter contract (exactly what `lib/posts.ts` reads)
 
-These are the Notion database properties the pipeline reads (`scripts/migrate-notion.mjs`) and the post shape in `lib/posts.ts`:
-
-```
-Title            # the rendered <h1> AND the meta <title>/og:title. There is no separate metaTitle. Keep ≤ ~60 chars of the front-loaded part.
-Slug             # kebab-case; equals content/posts/<slug>.json filename
-Excerpt          # short 1–2 sentence on-page hook (used on the blog index card)
-Meta Description # 150–160 char SERP description; SEPARATE from Excerpt
-Author           # select; the byline. Default "Ugo Charles".
-Tags             # multi-select; 1–4 short topical tags
-ReadingTime      # number (minutes)
-Featured Image   # file → downloaded to /blog/<slug>.webp
-Status           # "Done" = published; anything else is skipped by the migrate script
-Created          # date → createdTime
+```mdx
+---
+title: "Affirmations for Anxiety: 25+ Calming Phrases to Quiet Your Mind"   # rendered <h1> AND <title>/og:title
+excerpt: "Short 1–2 sentence on-page hook, shown on the blog index card."   # nullable
+metaDescription: "150–160 char SERP description; SEPARATE from excerpt."     # nullable
+author: "Ugo Charles"                 # the byline (loader default is "Aurasyncs Team")
+tags: ["affirmations", "anxiety"]     # YAML list, 1–4 short topical tags
+readingTime: 6                        # number, minutes
+createdTime: "2025-08-18T23:09:00.000Z"   # ISO datetime → datePublished / og:publishedTime
+lastEditedTime: "2025-08-18T23:30:00.000Z" # ISO datetime → dateModified / og:modifiedTime (bump on edits)
+featuredImage: "/blog/affirmations-for-anxiety-finding-peace-inner-calm.webp"   # full path, or omit
+---
 ```
 
-- **Title does double duty:** it is the rendered `<h1>` and the `<title>` / og:title. There is no `metaTitle`. Don't repeat the title as a heading at the top of the body.
-- **Meta Description is a separate field from Excerpt.** Excerpt is the short on-page/card hook; Meta Description is the 150–160 char SERP line. Don't conflate them. (Several existing posts have a Meta Description truncated to ~100 chars — when you touch a post, fix it to a full 150–160.)
-- **Author** is a real byline ("Ugo Charles"), not a faceless brand. See `eeat-signals-skill.md`.
-- There is **no `dateModified` field**. The post carries `createdTime` and `lastEditedTime` (from Notion). Track updates via those or git — never invent a modified-date field.
-- **No JSON-LD is emitted.** The route emits `<title>`, meta description, and a self-canonical only. `BlogPosting` / `FAQPage` / breadcrumb schema are **not** wired. If a post would benefit from them, note it as an OPTIONAL future renderer enhancement — do not fake it and do not claim schema ships. See `seo-and-schema-skill.md`.
+- **`title` does double duty:** it is the rendered `<h1>` and the `<title>` / og:title / JSON-LD headline. There is **no** `metaTitle`. Front-load the keyword; keep the load-bearing part ≤ ~60 chars so it survives in the SERP. Do **not** repeat it as a heading at the top of the body.
+- **`metaDescription` is a separate field from `excerpt`.** `excerpt` is the short on-page/card hook; `metaDescription` is the 150–160 char SERP line. Don't conflate them. (Several existing posts have a `metaDescription` truncated to ~100 chars — fix to a full 150–160 when you touch a post.)
+- **There IS a modified-date field: `lastEditedTime`.** It feeds JSON-LD `dateModified` and og:modifiedTime. Bump it when you update a post. `createdTime` feeds `datePublished`.
+- **`author`** is a real byline ("Ugo Charles"), not a faceless brand. See `eeat-signals-skill.md`.
+- There is **no `slug` field** (slug = filename), **no `status` field** (the file existing = published), and **no `relatedCategories`/`relatedPages`** — cross-links are inline Markdown links in the body.
+- **Canonical, OG, Twitter, `BlogPosting` JSON-LD, and `BreadcrumbList` JSON-LD are emitted automatically by the route. Do not hand-author them.** `FAQPage` and `HowTo` schema are **not** emitted — if a post would benefit, note it as an OPTIONAL future renderer enhancement; FAQs live in the body as prose, never in frontmatter. See `seo-and-schema-skill.md`.
 
-### Body rules — Notion blocks only
+### Body rules — plain Markdown only
 
-The body renders through `components/NotionRenderer.tsx`. It supports **only** these block types: `paragraph`, `heading_1`, `heading_2`, `heading_3`, `bulleted_list_item`, `numbered_list_item`, `to_do`, `toggle`, `code`, `image`, `divider`, `quote`, `callout`. Anything else renders as nothing.
+The body renders through the `MdxContent` component map, which styles only these elements: `h1, h2, h3, p, ul, ol, li, blockquote, hr, code, pre, a, img`. There are **no custom JSX components** (no `<AnswerBox>`, `<Callout>`, `<ProTip>`).
 
-- ❌ **No H1 in the body.** The route renders the H1 from the **Title** property. Also note `heading_1` is *styled as an `<h2>`* in the renderer — so for body section headings use **`heading_2`** for top-level sections and **`heading_3`** for sub-sections. Reserve nothing for `heading_1`; the page already has its one H1.
-- ✅ **The opening answer is a `quote` block.** The renderer styles a quote as a left-bordered, italicized box. The first body element after the (optional) featured image is the **direct-answer quote**: 40–60 words saying what this set is for, roughly how many affirmations are inside, and how to use them. This is the answer box and the featured-snippet target.
-- ✅ **Tips and notes are `callout` blocks** (emoji + tinted box) or a **bold lead-in line** in a paragraph ("**A gentle note.** …"). There is no custom Callout component beyond the Notion callout block.
-- ✅ **The affirmations themselves are lists** — `bulleted_list_item` (or `numbered_list_item` for a numbered set). First person, present tense, one affirmation per item. These lists are the scannability events.
-- ✅ `heading_2` for major sections, `heading_3` for sub-sections. Never skip a level.
-- ❌ **No tables.** The renderer has no table support — a table renders as nothing. Use grouped lists or prose for anything that feels tabular. (Tables are fine inside *these skill docs*; this rule is only about shipped post bodies.)
+- ❌ **No `#` H1 in the body.** The route renders the H1 from the frontmatter `title`, and the component map maps a body `#`/`h1` to an `<h2>` anyway. Use **`##`** for major sections and **`###`** for sub-sections. Never skip a level.
+- ✅ **The opening answer is a leading Markdown blockquote** (`> …`). The component map renders a blockquote as a left-bordered, italicized box — that IS the answer box. The first body block after the (optional) featured image is the **direct-answer blockquote**: 40–60 words saying what this set is for, roughly how many affirmations are inside, and how to use them. There is no `<AnswerBox>` component.
+- ✅ **Tips and notes are a bold lead-in line** in a paragraph ("**A gentle note.** …") or a blockquote. There is no callout component.
+- ✅ **The affirmations themselves are Markdown lists** (`- ` bullets, or `1.` for a numbered set). First person, present tense, one affirmation per item. These lists are the scannability events.
+- ✅ **GFM tables render** (`remark-gfm` is installed), as do strikethrough and task lists. Tables are allowed — but for affirmation posts, **prose and grouped lists almost always read better**, so use a table only when the content is genuinely tabular (e.g. a quick "morning vs. night" comparison). Don't force one.
+- ❌ **No `{#id}` anchors and no `#heading` jump-link promises** — there is no auto-slugging (no rehype-slug), so `{#id}` would render as literal text.
 - ❌ **No math** and no `$…$`. Affirmation posts don't need it.
 - ❌ Don't lean on em dashes as a rhythm crutch (an AI tell). Prefer periods and commas. En dashes in ranges are fine ("25–30 affirmations").
 - ❌ **No ellipses** (`...`) as a stylistic trail-off. **No semicolons** (period-and-new-sentence wins).
 - ❌ **No `[B-ROLL:]`, `[VISUAL:]`, `[PAUSE]`, `[NARRATOR:]`** or any bracketed YouTube notation. Inherited from FacelessOS; banned here.
 - ❌ **No trailing meta commentary**, word count, or "I hope this helps." The last line of the body is the last line of the post (a single CTA line linking to a related affirmation post is fine).
 - ✅ Paragraphs separated by blank lines. Each 2–4 sentences. One idea per paragraph.
-- ✅ **Internal links** are inline rich-text links to sibling posts: link "money affirmations" to `/blog/<sibling-slug>`. Descriptive anchor text, never "click here". See `topical-authority-skill.md`.
+- ✅ **Internal links** are inline Markdown links: `[morning affirmations](/blog/morning-affirmations-to-transform-your-day)`. Internal links (starting `/` or `#`) route through next/link automatically. Descriptive anchor text, never "click here". See `topical-authority-skill.md`.
+- ✅ **Images** are Markdown. Featured: frontmatter `featuredImage: "/blog/<slug>.webp"`. Inline: `![descriptive alt](/blog/<slug>-content-1.webp)`. Alt text is the Markdown alt (the renderer falls back to "Affirmation illustration"). Images render via next/image.
 
-**JSON emit note (optional repo preview).** If you write `content/posts/<slug>.json` directly, each block needs only `type`, an `id` (any stable unique string), and `<type>.rich_text` items shaped `{ "plain_text": "…", "annotations": { "bold": false, "italic": false, "strikethrough": false, "underline": false, "code": false, "color": "default" }, "href": null }`. A `quote`/`callout`/`heading_2`/`paragraph`/list item all follow that shape; an `image` block uses `image.__local` (e.g. `/blog/<slug>-content-1.webp`) and an optional `caption` rich-text array (the alt text). Append `{ "slug", "title", "createdTime" }` to `content/posts/_index.json`. This is a convenience for previewing in the repo; the Notion page remains the source of truth.
-
-**Deliverable shape every time:** the Title/Excerpt/Meta Description/Tags/Author property set, then the body as supported Notion blocks (answer quote near the top, the affirmation lists, the why-it-works and how-to-use framing, the FAQ, one CTA). That is what we ship.
+**Deliverable shape every time:** one `.mdx` file — frontmatter at the top, body below — that renders through `lib/posts.ts` + the `MdxContent` component map cleanly. That file is what we ship.
 
 ---
 
@@ -175,17 +172,15 @@ Before writing, identify which type this is. See `page-structures-skill.md` for 
 
 (Audience tuning — for women, men, kids, teens — and tone tuning — funny, sweary, novelty — are modifiers on a type, not separate types.)
 
-(The table above is in this protocol doc only. In a shipped **post body**, never use a table — the Notion renderer drops it. Use grouped lists.)
-
-The content type determines structure, length, intent, and snippet eligibility. All types output to a Notion page → `content/posts/<slug>.json`.
+The content type determines structure, length, intent, and snippet eligibility. All types output to `content/posts/<slug>.mdx`.
 
 ---
 
-## STEP 2 — Opening (the direct-answer quote block)
+## STEP 2 — Opening (the direct-answer blockquote)
 
 The opening has two jobs, in order:
 
-1. **Answer the query in 40–60 words**, inside a leading Notion `quote` block. Tell the reader what this set is for, roughly how many affirmations are inside, and how to use them. Google's snippet bot scans the first ~155 chars; so does a skimming reader. Example: *"These 25 anxiety affirmations are short, calming phrases you can repeat when your mind is racing — at your desk, in the car, or at 2am. Read them slowly, breathe between each one, and pick two or three that feel true today to carry with you."*
+1. **Answer the query in 40–60 words**, inside a leading Markdown blockquote (`> …`). Tell the reader what this set is for, roughly how many affirmations are inside, and how to use them. Google's snippet bot scans the first ~155 chars; so does a skimming reader. Example: `> These 25 anxiety affirmations are short, calming phrases you can repeat when your mind is racing — at your desk, in the car, or at 2am. Read them slowly, breathe between each one, and keep the two or three that feel true today.`
 2. **Give a reason to keep reading**, then orient. A reader with the gist still wants the grouped list, the how-to-use, or the why-it-works. Place a relevant sibling link near the top where it helps.
 
 For opening patterns by type + intent, see `BLOG-INTRO-SWIPE.md`.
@@ -194,15 +189,15 @@ For opening patterns by type + intent, see `BLOG-INTRO-SWIPE.md`.
 
 ## STEP 3 — Heading skeleton
 
-Plan `heading_2`s before writing prose, from the type's skeleton in `page-structures-skill.md`. A good collection skeleton: what these affirmations are for → how to use them → the affirmations (grouped into 3–5 themed `heading_2` sections) → why affirmations work (sourced) → tips → FAQ → CTA. A good practice-guide skeleton: what affirmations are → how to write one that works → a routine → example affirmations → FAQ → CTA.
+Plan `##` sections before writing prose, from the type's skeleton in `page-structures-skill.md`. A good collection skeleton: what these affirmations are for → how to use them → the affirmations (grouped into 3–5 themed `##` sections) → why affirmations work (sourced) → tips → FAQ → CTA. A good practice-guide skeleton: what affirmations are → how to write one that works → a routine → example affirmations → FAQ → CTA.
 
-Each `heading_2` is phrased as the thing it delivers, never "Section 1". Codify the heading list before writing prose.
+Each `##` is phrased as the thing it delivers, never "Section 1". There are no auto heading IDs and no jump links — don't write `{#id}`. Codify the heading list before writing prose.
 
 ---
 
 ## STEP 4 — Transitions & rehooks (web style)
 
-Blogs rehook every 200–300 words via a *visual* event — sub-head, list, callout, inline image. On an affirmation post, **the grouped affirmation lists, the themed sub-headings, and the quote/callout blocks are the scannability events.** A wall of prose with no list is a bounce. See `engagement-mechanics-skill.md`.
+Blogs rehook every 200–300 words via a *visual* event — sub-head, list, blockquote, inline image. On an affirmation post, **the grouped affirmation lists, the themed sub-headings, and the blockquote answer box are the scannability events.** A wall of prose with no list is a bounce. See `engagement-mechanics-skill.md`.
 
 Between paragraphs use the but/therefore rule. "And then" is contraband. Every transition is a contrast (but, however), a consequence (therefore, so), or a question.
 
@@ -225,7 +220,7 @@ The conclusion has three jobs:
 
 1. **Synthesis.** Re-anchor the one practical takeaway (how to actually use these — pick two or three, repeat them daily, say them out loud). Not a recap.
 2. **One action: a related affirmation post.** "If mornings are your hardest part, the [morning affirmations](/blog/morning-affirmations-to-transform-your-day) are a gentle place to start." Never two CTAs.
-3. **FAQ section in the body.** Add a `heading_2` "Frequently asked questions" with 2–4 `heading_3` questions drawn from People-Also-Ask. This lives in the body as prose, not a property, and does not emit FAQPage schema (that schema is an optional future enhancement). See `featured-snippet-skill.md`.
+3. **FAQ section in the body.** Add a `## Frequently asked questions` section with 2–4 `###` questions drawn from People-Also-Ask. This lives in the body as prose, not frontmatter. It does **not** emit FAQPage schema (that is an optional future enhancement), though the page already ships `BlogPosting` + `BreadcrumbList` JSON-LD automatically. See `featured-snippet-skill.md`.
 
 Full templates in `conclusion-and-cta-skill.md`.
 
@@ -235,20 +230,20 @@ Full templates in `conclusion-and-cta-skill.md`.
 
 Before finalizing every post:
 
-### Properties ("frontmatter"):
-- [ ] `Title` front-loads the keyword, ≤ ~60 chars of the part that must survive in the SERP (it is the H1, `<title>`, og:title)
-- [ ] `Slug` kebab-case, equals the `content/posts/<slug>.json` filename
-- [ ] `Excerpt` is a short 1–2 sentence hook; `Meta Description` is a separate 150–160 char field (don't conflate them)
-- [ ] `Author` set (default "Ugo Charles"), `Tags` (1–4), `ReadingTime`, `Status: Done`
-- [ ] `Featured Image` set if one exists
-- [ ] No invented properties (no `metaTitle`, `dateModified`, schema fields)
+### Frontmatter:
+- [ ] `title` front-loads the keyword, ≤ ~60 chars of the part that must survive in the SERP (it is the H1, `<title>`, og:title, JSON-LD headline)
+- [ ] `excerpt` is a short 1–2 sentence hook; `metaDescription` is a separate 150–160 char field (don't conflate them)
+- [ ] `author: "Ugo Charles"`, `tags` (1–4), `readingTime`, `createdTime`, `lastEditedTime` set
+- [ ] `featuredImage` set to the real `/blog/<slug>.webp` path if the image exists, else omitted
+- [ ] No invented fields (no `slug`, `status`, `metaTitle`, `category`, `relatedCategories`)
 
 ### Body:
-- [ ] Body opens with the direct-answer `quote` block (no H1 in the body — Title owns it)
-- [ ] Top sections use `heading_2`, sub-sections `heading_3`, no skips; nothing uses `heading_1`
+- [ ] Body starts with content (often the featured image), then the direct-answer blockquote; a sibling link is near the top where it helps
+- [ ] No `#` H1 anywhere in the body (the `title` is the H1); sections use `##` → `###`, no skips
 - [ ] Affirmations are first-person, present-tense list items, grouped into themed sections
-- [ ] No tables (Notion renderer drops them); no `$…$` math; only supported block types
-- [ ] FAQs are a `heading_2` "Frequently asked questions" body section
+- [ ] No `{#id}` anchors / no `#heading` jump-link promises; no `$…$` math
+- [ ] Tables only where genuinely tabular (GFM renders, but prose/lists usually read better)
+- [ ] FAQs are a `## Frequently asked questions` body section, not frontmatter
 - [ ] No semicolons, no stray ellipses, em dashes not used as a crutch
 - [ ] No bracketed YouTube notation; no trailing meta commentary
 
@@ -259,16 +254,16 @@ Before finalizing every post:
 ### Trust (E-E-A-T / the gate):
 - [ ] Every affirmation is well-formed and non-harmful (no toxic positivity / denial for someone in distress)
 - [ ] Every load-bearing claim (science, study, scripture, health, money) verified against a reputable source and cited; ranges where the truth varies; no fabricated facts or fake studies
-- [ ] Real author byline ("Ugo Charles")
+- [ ] Real author byline (`author: "Ugo Charles"`)
 - [ ] Responsible framing: support-not-replace-care note where the topic is clinical; scripture accurate with translation named; manifestation framed as mindset, not guaranteed outcome
 
 ### Structure / scannability:
-- [ ] A scannability event every 200–300 words (list, sub-head, callout, image)
+- [ ] A scannability event every 200–300 words (list, sub-head, blockquote, image)
 - [ ] The affirmations are grouped, with each group framed in a sentence and a real "how to use" section
-- [ ] On-theme featured image with descriptive caption (the caption is the alt text)
+- [ ] On-theme featured image with descriptive alt text
 
 ### SEO:
-- [ ] Target query in: Title, the answer quote, the first 100 words, one `heading_2`, slug, image caption, and `Meta Description`
+- [ ] Target query in: `title`, the answer blockquote, the first 100 words, one `##`, the slug (filename), image alt, and `metaDescription`
 - [ ] 3–6 internal links to siblings in the same cluster
 - [ ] FAQ section answers 2–4 People-Also-Ask queries
 
@@ -282,33 +277,33 @@ Before finalizing every post:
 After generating any post, the writer MUST run the re-audit before outputting.
 
 ### Re-audit process
-1. Generate the complete draft (property set + body blocks).
+1. Generate the complete `.mdx` draft (frontmatter + body).
 2. STOP — do not output yet.
 3. Scan against the Quality Checklist above.
 4. Fix every violation.
 5. Verify fixes did not introduce new issues.
-6. Output the cleaned post + audit.
+6. Output the cleaned `.mdx` + audit.
 
 ### Re-audit checklist (run automatically)
 
-**Property scan:** all required properties present and correctly named (`Title`, `Slug`, `Excerpt`, `Meta Description`, `Author`, `Tags`, `ReadingTime`, `Featured Image`, `Status`); `Meta Description` 150–160 chars; `Status: Done`; no invented properties.
+**Frontmatter scan:** all fields present and correctly named (`title`, `excerpt`, `metaDescription`, `author`, `tags`, `readingTime`, `createdTime`, `lastEditedTime`, `featuredImage`); `metaDescription` 150–160 chars; no invented fields (no `slug`, `status`, `metaTitle`, `category`).
 
 **Body scan:**
-- Search for an H1 / `heading_1` in the body → remove or demote to `heading_2` (the page H1 comes from Title; `heading_1` mis-renders as an h2 anyway).
-- Search for any table → convert to grouped lists/prose (tables don't render).
-- Search for `$` math → rewrite as plain text.
-- Search for any unsupported block intent → map to a supported block (quote, callout, list, paragraph, image, divider).
+- Search for `# ` at line start → remove (the H1 comes from `title`; a body `#` renders as an h2 anyway). Use `##`/`###`.
+- Search for `{#` → remove (no auto IDs; the literal text would render).
+- Search for `$` math delimiters → rewrite as plain text.
+- Search for raw JSX tags (`<SomeComponent`) → remove (no custom components in the map).
 - Search for `;` → split into two sentences. Search for stray `...` → fix.
 - Search for AI crutch phrases ("Here's the thing:", "The bottom line:", "Let that sink in", "Powerful", "Life-changing", "Game-changing") → patch.
 - Search for "Most [people/beginners]" at sentence start → rewrite.
 - Search for `[B-ROLL:|VISUAL:|PAUSE|NARRATOR:]` → remove.
-- Confirm a `heading_2` "Frequently asked questions" section exists where the type calls for it.
+- Confirm a `## Frequently asked questions` section exists where the type calls for it.
 
 **Affirmation & terminology scan:** every affirmation present tense / first person / positively framed / believable; affirmation-vs-mantra-vs-manifestation terms correct and consistent.
 
 **Trust scan:** every affirmation well-formed and non-harmful; every load-bearing claim sourced or cut; no fabricated facts / fake statistics / invented studies; scripture accurate with translation named; mental-health support-not-replace note present where clinical; manifestation framed responsibly.
 
-**Structure scan:** no H1 in body; `heading_2` → `heading_3` no skips; answer quote near the top; sibling link present; scannability cadence.
+**Structure scan:** no `#` H1 in body; `##` → `###` no skips; answer blockquote near the top; sibling link present; scannability cadence.
 
 ### Audit output format
 
@@ -333,15 +328,17 @@ After generating any post, the writer MUST run the re-audit before outputting.
 **Slop & structure fixes**
 - <bullet>
 
-===POST===
-[Property set: Title / Slug / Excerpt / Meta Description / Author / Tags / ReadingTime / Featured Image / Status]
+===MDX===
+---
+<frontmatter>
+---
 
-[Body as Notion blocks: answer quote, headings, affirmation lists, why-it-works, FAQ, CTA]
+<body>
 
 ===END===
 ```
 
-If the draft needed no fixes in a section, skip that section. If any load-bearing claim ended ❌ (or ⚠️ unresolved) — a fabricated study, a misquoted verse, a harmful affirmation, an over-promise — emit ONLY the audit with `❌ POST NOT SHIPPED — claims unverified / unsafe` and skip the post.
+If the draft needed no fixes in a section, skip that section. If any load-bearing claim ended ❌ (or ⚠️ unresolved) — a fabricated study, a misquoted verse, a harmful affirmation, an over-promise — emit ONLY the audit with `❌ POST NOT SHIPPED — claims unverified / affirmations unsafe` and skip the MDX.
 
 ---
 
@@ -349,7 +346,7 @@ If the draft needed no fixes in a section, skip that section. If any load-bearin
 
 LLMs degrade past ~3,500 words in one generation. For big sets (a 365-day calendar, a pillar practice guide):
 
-1. **Outline first.** Write the `heading_2`/`heading_3` skeleton with a target word/affirmation count per section.
+1. **Outline first.** Write the `##`/`###` skeleton with a target word/affirmation count per section.
 2. **Section-by-section drafting.** Each section gets its own focused generation. Include the full outline and the previous section's last 2–3 sentences for voice continuity.
 3. **Consistency pass at the end.** Run a voice-consistency review across the joined draft.
 
@@ -370,12 +367,12 @@ There are optional `/blog`, `/b-write`, and `/b-review` slash commands under `.c
 1. Load this pack into context.
 2. Pick a topic/keyword and identify the content type.
 3. Run the Pass 1 grounding gather (WebSearch SERP/PAA + verify science/scripture).
-4. Draft the post as a property set + supported Notion blocks.
+4. Draft the post as plain-Markdown MDX (frontmatter + body).
 5. Run the Pass 2 affirmation + fact verification gate.
-6. Run the mandatory re-audit and output the cleaned post + audit.
+6. Run the mandatory re-audit and write content/posts/<slug>.mdx + output the audit.
 ```
 
-The commands wrap this: `/blog` loads the pack, `/b-write <topic>` gathers + drafts + audits and can emit `content/posts/<slug>.json`, `/b-review <slug>` audits + fixes an existing post.
+The commands wrap this: `/blog` loads the pack, `/b-write <topic>` gathers + drafts + audits and writes `content/posts/<slug>.mdx`, `/b-review <slug>` audits + fixes an existing post.
 
 ### What the writer does
 
@@ -383,12 +380,12 @@ The commands wrap this: `/blog` loads the pack, `/b-write <topic>` gathers + dra
 2. Read the voice profile (`research/voice_profile.md` if present, else `protocols/site-voice-profile.md`).
 3. Run the Pass 1 grounding gather (WebSearch/WebFetch) and collect real queries, the PAA, and any science/scripture sources.
 4. Verify the brief is real (a way to make it non-generic, sources named), not guesses.
-5. Plan the `heading_2`/`heading_3` skeleton.
-6. Draft per pack rules as a property set + Notion blocks, with well-formed affirmations.
+5. Plan the `##`/`###` skeleton.
+6. Draft per pack rules as plain-Markdown MDX, with well-formed affirmations.
 7. Run the affirmation + fact verification pass (the hard gate).
 8. Patch inline (literal swaps only).
 9. Run the mandatory re-audit.
-10. Output the cleaned post + audit.
+10. Write `content/posts/<slug>.mdx` and output the audit.
 
 ---
 

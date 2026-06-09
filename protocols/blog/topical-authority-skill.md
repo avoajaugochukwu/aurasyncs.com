@@ -1,6 +1,6 @@
 ---
 name: topical-authority
-description: The hub-and-spoke (pillar-cluster) content architecture that signals topical authority to Google for aurasyncs.com's affirmation content. This skill is how a site of 100 posts becomes a recognized authority on affirmations rather than 100 disconnected pages. Covers pillar selection (a Money/Abundance pillar, a Faith pillar, an Anxiety/Mental-Health pillar, a Daily-Practice pillar), cluster mapping, inline internal-linking discipline via Notion rich-text hrefs, and when to write a new cluster vs expand an existing post.
+description: The hub-and-spoke (pillar-cluster) content architecture that signals topical authority to Google for aurasyncs.com's affirmation content. This skill is how a site of 100 posts becomes a recognized authority on affirmations rather than 100 disconnected pages. Covers pillar selection (a Money/Abundance pillar, a Faith pillar, an Anxiety/Mental-Health pillar, a Daily-Practice pillar), cluster mapping, inline internal-linking discipline via Markdown `[anchor](/blog/<slug>)` links, and when to write a new cluster vs expand an existing post.
 ---
 
 # Topical Authority — hub-and-spoke
@@ -38,16 +38,16 @@ This is the structure Google's notion of "topical authority" was built to recogn
 
 ## How linking physically works on this site
 
-Internal links live in the **body**, as **inline Notion rich-text `href`s**. In the `blocks` array, a link is a run of rich text inside a paragraph (or list item) with its `href` set to the relative path of the target post:
+Internal links live in the **body**, as **inline Markdown links** — `[anchor](/blog/<slug>)`. In the plain-Markdown MDX body, a link is ordinary Markdown link syntax inside a paragraph (or list item) pointing at the relative path of the target post:
 
-- To a sibling post: a rich-text run with `href: "/blog/<sibling-slug>"` and the anchor text = the sibling's target query.
-- To the pillar: a rich-text run with `href: "/blog/<pillar-slug>"`.
+- To a sibling post: `[anchor](/blog/<sibling-slug>)` with the anchor text = the sibling's target query.
+- To the pillar: `[anchor](/blog/<pillar-slug>)`.
 
-`components/NotionRenderer.tsx` renders these rich-text runs as styled `<a>` links. There is **no Markdown `[text](url)` in the body** — the body is Notion blocks, so every link is a rich-text run with an `href`. Relative paths resolve against the site root. Posts live flat under `/blog/<slug>`.
+`components/MdxContent.tsx` maps the `a` element so any link whose `href` starts with `/` renders through `next/link` as a styled internal `<a>`. Relative paths resolve against the site root. Posts live flat under `/blog/<slug>`.
 
-There is **no separate "related posts" property and no coloring-collection namespace** — the only internal-link mechanism is the inline body href. So put real editorial links in the prose where the sibling topic genuinely relates; that *is* the topical signal.
+There is **no separate "related posts" property and no `relatedCategories`/`relatedPages` frontmatter** — the only internal-link mechanism is the inline Markdown link in the body. So put real editorial links in the prose where the sibling topic genuinely relates; that *is* the topical signal.
 
-The real link targets you'll pair posts with are other posts in `content/posts/` (verify the slug in `content/posts/_index.json` before linking — never link a 404):
+The real link targets you'll pair posts with are other posts in `content/posts/` (verify the sibling `.mdx` file exists in `content/posts/` before linking — never link a 404):
 
 | Cluster | Real slugs to link (examples) |
 |---|---|
@@ -76,7 +76,7 @@ aurasyncs.com's natural pillars map onto the site's real clusters:
 
 Other ready clusters worth a pillar as the library grows: **self-love** (`affirmations-for-self-love`, `self-love-affirmations-confidence-worth`), **confidence**, **chakra** (`root-`/`sacral-`/`crown-chakra-affirmations`), and **audience** (women/men/kids/teens variants).
 
-For each candidate pillar, list 6+ candidate clusters before committing. If you can't list 6, the pillar is too narrow and should be a cluster instead. The blog index (`content/posts/_index.json`) is the source for what exists.
+For each candidate pillar, list 6+ candidate clusters before committing. If you can't list 6, the pillar is too narrow and should be a cluster instead. The set of `.mdx` files in `content/posts/` is the source for what exists.
 
 ---
 
@@ -84,7 +84,7 @@ For each candidate pillar, list 6+ candidate clusters before committing. If you 
 
 For a chosen pillar, the cluster map enumerates every spoke. Example for the Money pillar:
 
-| Cluster slug | Target query | Type | Status |
+| Cluster slug | Target query | Type | State |
 |---|---|---|---|
 | `money-affirmations` | "money affirmations" | Pillar | Pillar |
 | `money-affirmations-for-financial-abundance` | "money affirmations for financial abundance" | Themed collection | Published |
@@ -95,7 +95,7 @@ For a chosen pillar, the cluster map enumerates every spoke. Example for the Mon
 
 Example for the Faith pillar:
 
-| Cluster slug | Target query | Type | Status |
+| Cluster slug | Target query | Type | State |
 |---|---|---|---|
 | `bible-affirmations` | "bible affirmations" | Pillar | Pillar |
 | `bible-affirmations-verses-faith` | "bible affirmations verses" | Faith/scripture set | Published |
@@ -103,13 +103,13 @@ Example for the Faith pillar:
 | `biblical-affirmations-strengthening-faith-through-gods-promises` | "biblical affirmations" | Faith/scripture set | Published |
 | `christian-affirmations-for-work-strengthen-your-faith-and-success` | "Christian affirmations for work" | Faith × work set | Published |
 
-This map lives in context for the write (and in `content/posts/_index.json` for what's already shipped). It is the source of truth for what clusters exist and which siblings each spoke pairs with. The writer reads it when writing any post in the cluster so the inline body hrefs resolve to the right real slugs.
+This map lives in context for the write (and the `.mdx` files in `content/posts/` are the record of what's already shipped). It is the reference for what clusters exist and which siblings each spoke pairs with. The writer reads it when writing any post in the cluster so the inline body Markdown links resolve to the right real slugs (filenames).
 
 ---
 
 ## Internal-link discipline
 
-Every post links **up** and **across** — and pillars also link **down** — via inline body rich-text hrefs.
+Every post links **up** and **across** — and pillars also link **down** — via inline body Markdown links.
 
 ### Cluster post internal-link rules
 
@@ -117,7 +117,7 @@ Every post links **up** and **across** — and pillars also link **down** — vi
 - **≥ 3 links across to sibling posts** — placed where the sibling topic genuinely relates, not dumped in the conclusion. ("…ready to focus on the mindset behind it? Try [manifestation affirmations for beginners](/blog/manifestation-affirmations-for-beginners).")
 - **0-2 links to posts outside the cluster**, only when relevant — e.g. an anxiety set linking across to a calming [sleep affirmations](/blog/sleep-affirmations-relax-your-mind-and-enjoy-restful-sleep) set.
 
-Total internal-link minimum per post: pillar (1, where one exists) + ≥ 3 siblings — landing around the 3–6 internal links the writing guide calls for. Keep links contextual so they read as editorial, not stuffed. (Each link is a Notion rich-text run with an `href`; there is no related-posts array to maintain alongside it.)
+Total internal-link minimum per post: pillar (1, where one exists) + ≥ 3 siblings — landing around the 3–6 internal links the writing guide calls for. Keep links contextual so they read as editorial, not stuffed. (Each link is an inline Markdown `[anchor](/blog/<slug>)`; there is no related-posts array to maintain alongside it.)
 
 ### Pillar internal-link rules
 
@@ -174,24 +174,24 @@ A common mistake: writing 20 short posts on adjacent sub-questions when one comp
 
 When expanding, the workflow is:
 
-1. Open the post in **Notion** (the source of truth) and add the new heading_2 + content blocks
+1. Open the post's `.mdx` file at `content/posts/<slug>.mdx` and add the new `##` section + Markdown content
 2. Add any new source citations inline where a load-bearing claim is made (psychology of affirmations, any study, any scripture, any health/money claim)
-3. Add any new sibling inline links (rich-text hrefs) where the new section genuinely relates
+3. Add any new sibling inline links (Markdown `[anchor](/blog/<slug>)`) where the new section genuinely relates
 4. Re-verify any psychology/scripture/health/money claim per `accuracy-and-trust-skill.md`, and confirm every affirmation is still well-formed
-5. Set **Status** to "Done" and re-run `node --env-file=.env scripts/migrate-notion.mjs` so the updated `content/posts/<slug>.json` ships (there is **no `dateModified` property** — track the change via git history; **Created** is the only date the post carries)
+5. Update the `lastEditedTime` frontmatter to the edit date (it feeds `dateModified`/`og:modifiedTime`) and save the `.mdx` file — no migrate step, no `Status` field; `createdTime` stays the publish date
 6. Re-audit the expanded post
 
 ---
 
 ## Topical map maintenance
 
-The cluster map lives in context for each write, anchored to `content/posts/_index.json` (what's shipped). Keep your mental map current:
+The cluster map lives in context for each write, anchored to the `.mdx` files in `content/posts/` (what's shipped). Keep your mental map current:
 
-- When a new post in the cluster is planned or published (Status → Done, migrate script run)
+- When a new post in the cluster is planned or published (its `.mdx` file written to `content/posts/`)
 - When a post is retired
 - When a post is consolidated into another (redirect the old slug)
 
-The writer reads `content/posts/_index.json` to know which siblings exist and link to when writing a new post. Keeping that current is what makes the inline internal linking reliable and 404-free.
+The writer reads the `content/posts/` directory to know which siblings exist and link to when writing a new post. Keeping that current is what makes the inline internal linking reliable and 404-free.
 
 ---
 
@@ -222,25 +222,25 @@ This makes the cluster read as one warm, coherent voice across the set (AuraSync
 ## What kills topical authority
 
 - **Orphan posts** — posts with zero inbound internal links. They signal the site doesn't recognize the post as part of any topic.
-- **Tag-only architecture** — relying on Notion **Tags** for navigation instead of explicit body links. Tags are weak signals.
+- **Tag-only architecture** — relying on the `tags` frontmatter for navigation instead of explicit body links. Tags are weak signals.
 - **Duplicate-intent posts** — two posts targeting the same query (e.g. the two anxiety pages, or the two money-manifestation pages). Pick one canonical page, redirect the rest.
 - **Pillar without clusters** — a long pillar with no supporting spokes reads as a one-off, not a hub.
 - **Clusters without a pillar** — 10 related posts with no central pillar to anchor them.
-- **Broken links** — an inline href pointing at a slug that isn't in `content/posts/_index.json`. Verify every link target is real before publishing.
+- **Broken links** — an inline Markdown link pointing at a slug that has no `.mdx` file in `content/posts/`. Verify every link target is real before publishing.
 
 ---
 
 ## Pre-publish topical authority checklist
 
-- [ ] Post's cluster and pillar identified (from `content/posts/_index.json` + the cluster map)
-- [ ] Inline body link UP to the pillar present (for clusters), as a rich-text href
-- [ ] ≥ 3 inline body links across to sibling posts (for clusters), as rich-text hrefs
+- [ ] Post's cluster and pillar identified (from the `.mdx` files in `content/posts/` + the cluster map)
+- [ ] Inline body link UP to the pillar present (for clusters), as a Markdown `[anchor](/blog/<slug>)`
+- [ ] ≥ 3 inline body links across to sibling posts (for clusters), as Markdown `[anchor](/blog/<slug>)`
 - [ ] Anchor text = the target query of each linked page
 - [ ] No "click here" / "learn more" anchors
 - [ ] Contextual internal links kept to a readable density (~3-6)
-- [ ] All links use real `/blog/<slug>` routes verified against `content/posts/_index.json` (no 404s)
+- [ ] All links use real `/blog/<slug>` routes verified against the `.mdx` files in `content/posts/` (no 404s)
 - [ ] Money/manifestation framed as mindset (not guaranteed); scripture cited with translation; clinical topics carry the support-not-replacement note
-- [ ] Cluster map / `_index.json` reflects the new post once it ships (Status → Done, migrate script run)
+- [ ] Cluster map reflects the new post once its `.mdx` file is written to `content/posts/`
 
 ---
 

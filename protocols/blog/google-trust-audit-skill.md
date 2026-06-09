@@ -32,7 +32,7 @@ The HCU classifier asks (loosely paraphrased from Google's own documentation): *
 
 #### Check 1: People-first framing
 - [ ] The post is written for someone with a specific need (affirmations for anxiety, what to say to myself on a hard Monday, how to build self-love), not for a keyword
-- [ ] The H1 (from the Notion Title) and excerpt describe what the reader will *get* (affirmations they can actually use, a calmer morning, a faith anchor), not what the post *covers*
+- [ ] The H1 (from the frontmatter `title`) and excerpt describe what the reader will *get* (affirmations they can actually use, a calmer morning, a faith anchor), not what the post *covers*
 - [ ] The intent (find affirmations, understand how they work, get a daily set) matches what someone typing the target query actually wants
 
 #### Check 2: Unique angle
@@ -69,9 +69,9 @@ The HCU classifier asks (loosely paraphrased from Google's own documentation): *
 - [ ] **Not a thin list** — NOT "just 50 affirmations dumped in a bullet list with no original framing." The why-they-work + how-to-use + original grouping is what lifts it above the content-farm clones. A bare list is an HCU fail.
 
 #### Check 9: Trust foundations
-- [ ] Author byline present (default: **Ugo Charles**, via the Notion `Author` property)
+- [ ] Author byline present (default: **Ugo Charles**, via the `author` frontmatter field)
 - [ ] Brand editorial note / About link present
-- [ ] Content is current (`Created` set correctly; there is no `dateModified` field — currency is tracked via git / Notion `lastEditedTime`)
+- [ ] Content is current (`createdTime` set correctly; the `lastEditedTime` frontmatter field feeds JSON-LD `dateModified` + og:modifiedTime — update it on edits)
 - [ ] Outbound links to primary / reputable sources where science or scripture is asserted
 - [ ] No misleading headlines
 
@@ -103,7 +103,7 @@ See `eeat-signals-skill.md` for the full discipline. This audit verifies the sig
 
 #### Trustworthiness
 - [ ] Primary / reputable source citations (≥ 3: study / APA / NIH / .edu / reputable Bible source where facts or scripture are asserted)
-- [ ] Content current (`Created` correct; currency via git / Notion `lastEditedTime` — no `dateModified` field)
+- [ ] Content current (`createdTime` correct; `lastEditedTime` frontmatter field feeds JSON-LD `dateModified` — update on edits)
 - [ ] Corrections policy linked
 - [ ] Honest framing — no clickbait, no false-certainty "this fixes everything," no guaranteed-outcome promise
 - [ ] Every affirmation well-formed and non-harmful; every science/health claim and scripture passed the trust gate
@@ -157,7 +157,7 @@ Google's spam policies have evolved sharply with AI. The three most relevant for
 - [ ] This post is NOT a template fill-in where only the theme changes between posts (the trap for "affirmations for X" collections — cloned across hundreds with no genuinely distinct lines, grouping, why-they-work, or how-to-use)
 - [ ] If we're publishing many affirmation collections on related needs, each has genuinely topic-specific affirmations, its own grouping, a relevant why-they-work note, and a how-to-use that fits that need
 - [ ] Publishing rate is reasonable (not 50 cloned "affirmations for X" posts/day)
-- [ ] No `<h1>` keyword stuffing (the H1 comes from the Notion Title; keep it natural)
+- [ ] No `<h1>` keyword stuffing (the H1 comes from the frontmatter `title`; keep it natural)
 - [ ] No paragraph keyword stuffing (target query appears naturally, not 10x per paragraph)
 
 #### How to test
@@ -283,7 +283,7 @@ The orchestrator presents this to the user. If risk is MEDIUM or HIGH, the user 
 
 - **Whether the post will rank** — that's a long-term outcome, not an audit gate
 - **Whether the writing is "good"** — that's the anti-AI-slop checklist in `blog-os-master.md`
-- **Schema validity** — covered by `seo-and-schema-skill.md` (note: the route emits only basic title/meta-description/canonical today; structured data is future work)
+- **Schema validity** — covered by `seo-and-schema-skill.md` (note: the route auto-emits `BlogPosting` + `BreadcrumbList` JSON-LD, canonical, and OG/Twitter; it does not emit `FAQPage`/`HowTo`)
 - **Snippet eligibility** — covered by `featured-snippet-skill.md`
 - **Internal-link math** — covered by `topical-authority-skill.md`
 

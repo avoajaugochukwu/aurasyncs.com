@@ -48,7 +48,7 @@ A bare run of 50 affirmations is thin content and hard to use. Group every list:
 - **By intensity (the ladder)** — gentle/opening affirmations first, bolder claims later, so a struggling reader has an on-ramp.
 - **By life area** — for money: mindset, action, gratitude, security.
 
-Give each group a `heading_2` (or `heading_3` under a section), frame it in one sentence, then the affirmations as list items. The grouping *is* part of the original value (see `blog-os-master.md` rule 2).
+Give each group a `##` (or `###` under a section), frame it in one sentence, then the affirmations as list items. The grouping *is* part of the original value (see `blog-os-master.md` rule 2).
 
 ## The terminology — use the practice's own words correctly
 
@@ -72,9 +72,9 @@ Give each group a `heading_2` (or `heading_3` under a section), frame it in one 
 
 A grouped affirmation section is high-stakes because the reader will actually repeat these. Each group follows this pattern:
 
-1. **Name the group with a `heading_2`/`heading_3`** that says when or why to use it ("Affirmations for a racing-thoughts moment").
+1. **Name the group with a `##`/`###`** that says when or why to use it ("Affirmations for a racing-thoughts moment").
 2. **Frame it in one sentence** — when this set helps and how to say it.
-3. **List the affirmations** as first-person, present-tense `bulleted_list_item`s, laddered where the topic is tender (gentler ones first).
+3. **List the affirmations** as first-person, present-tense Markdown bullet-list items (`- …`), laddered where the topic is tender (gentler ones first).
 4. **Offer a using tip** where useful — pick two or three, repeat slowly, pair with a breath.
 
 A complete affirmation answer therefore reads: grouped by situation, each group framed, every line well-formed and believable, with a gentle on-ramp for the reader who isn't there yet.

@@ -10,11 +10,11 @@ The default is a manual pipeline you drive yourself. There's no orchestrator and
 2. **Identify the content type** from `page-structures-skill.md` — 💫 collection, 📅 daily/occasion, 🙏 faith/scripture, or 🧘 practice guide (plus any audience/tone modifier).
 3. **Research the SERP with WebSearch** — read the top posts and the People-Also-Ask box, then WebFetch any source you need to confirm a fact (the psychology of affirmations, a scripture quote, a health/money claim).
 4. **Assemble a brief** — the angle that makes it non-generic (the grouping scheme, the real how-to-use, the sourced why-it-works), the FAQ from PAA, the heading skeleton, the sibling posts to cross-link.
-5. **Draft the post** per the content type's spec in `page-structures-skill.md` — the property set, then a body of supported Notion blocks: a leading `quote` answer box, the grouped affirmation lists, the framing, the FAQ, one CTA.
+5. **Draft the post** as plain-Markdown MDX per the content type's spec in `page-structures-skill.md` — frontmatter first, then the body: a leading blockquote answer box, the grouped affirmation lists, the framing, the FAQ, one CTA.
 6. **Check every affirmation is well-formed and safe** (`affirmation-craft-skill.md`) — present tense, first person, positive framing, believable or laddered, no denial/toxic positivity.
 7. **Verify factual claims** against reputable sources and cite them; quote any scripture exactly with the translation named; add a support-not-replace note where the topic is clinical (`accuracy-and-trust-skill.md`).
 8. **Run the re-audit** (`google-trust-audit-skill.md` + the gate in `accuracy-and-trust-skill.md`).
-9. **Publish.** Put the post in Notion (properties + body), set `Status` to **Done**, and run `node --env-file=.env scripts/migrate-notion.mjs` to pull it into `content/posts/<slug>.json`. (For a quick repo preview, `/b-write` can also emit the JSON directly — see below.)
+9. **Write the file** to `content/posts/<slug>.mdx`. Drop the featured image at `public/blog/<slug>.webp` and any inline images at `public/blog/<slug>-content-N.webp`.
 
 ## Optional commands
 
@@ -22,11 +22,11 @@ These live as plain markdown files in `.claude/commands/<name>.md`.
 
 ```
 /blog                                           # load the pack into chat
-/b-write <topic/keyword>                        # research + draft → a Notion-ready post (+ optional content/posts/<slug>.json)
+/b-write <topic/keyword>                        # research + draft → content/posts/<slug>.mdx
 /b-review <slug>                                # audit + fix an existing post
 ```
 
-`/b-write` takes a topic, infers the content type, researches via WebSearch, assembles the brief, drafts as a property set + Notion blocks, checks every affirmation, verifies facts/scripture, runs the re-audit, and outputs the post in a paste-into-Notion shape — optionally also writing `content/posts/<slug>.json` and appending to `content/posts/_index.json` for a local preview. `/b-review` resolves `content/posts/<slug>.json`, audits against the full pack, re-checks the affirmations, re-verifies facts, and writes back — refusing to ship if a harmful affirmation or an unverifiable claim remains. `/blog` just loads the pack for brainstorming or manual edits.
+`/b-write` takes a topic, infers the content type, researches via WebSearch, assembles the brief, drafts as plain-Markdown MDX, checks every affirmation, verifies facts/scripture, runs the re-audit, and writes `content/posts/<slug>.mdx`. `/b-review` resolves `content/posts/<slug>.mdx`, audits against the full pack, re-checks the affirmations, re-verifies facts, and writes back — refusing to ship if a harmful affirmation or an unverifiable claim remains. `/blog` just loads the pack for brainstorming or manual edits.
 
 ---
 
@@ -45,10 +45,10 @@ Audience tuning (women, men, kids, teens) and tone tuning (funny, sweary) are mo
 
 ## The hard rules
 
-1. **Notion-native output, supported blocks only.** Property set first, then the body. H1 comes from the **Title** property — no H1 in the body, and don't use `heading_1` (it mis-renders as an h2); top sections are `heading_2`, sub-sections `heading_3`. The answer box is a leading `quote` block. No tables (the renderer drops them), no math, no invented properties.
+1. **MDX output, plain Markdown elements only.** Frontmatter first, body second, no preamble, no closer. H1 in frontmatter `title:` only — the body starts (often after an image) with a top blockquote answer box. No `#` H1 in the body (use `##`/`###`), no invented JSX components, no `$…$` math, no `{#id}` anchors. GFM tables render (remark-gfm) but are used sparingly — prose and grouped lists usually read better.
 2. **Well-formed affirmations.** Present tense, first person, positively framed (affirm what you want, not what you fear), believable or laddered, short and speakable, grouped so the list helps. No denial / toxic positivity, no guaranteed-outcome phrasing (`affirmation-craft-skill.md`).
 3. **Accuracy & trust is a publish gate.** Every affirmation is read as the reader and confirmed safe. Every load-bearing claim (the science of affirmations, a study, a scripture quote, a health/money claim) is verified against a reputable source and cited; use honest hedges where the evidence is modest; no fabricated facts or fake statistics. Scripture is quoted exactly with the translation named. A support-not-replace note appears where the topic is clinical. A harmful affirmation or an unverifiable claim → the post does not ship (`accuracy-and-trust-skill.md`).
-4. **Content-type skeletons guide structure.** Read `page-structures-skill.md`. Each type has a property shape, a body skeleton, and a word-count band. Adapt to what the SERP rewards.
+4. **Content-type skeletons guide structure.** Read `page-structures-skill.md`. Each type has a frontmatter shape, a body skeleton, and a word-count band. Adapt to what the SERP rewards.
 5. **No fake briefs, no invented facts.** The brief comes from WebSearch research, not assumptions. If the brief lacks a way to make the post non-generic or a sourced fact, don't write one — mark it `NEEDS MORE RESEARCH`.
 
 ---
@@ -62,9 +62,9 @@ Worked example: **"affirmations for anxiety"**, a 💫 themed collection.
 1. Identify the type (💫 collection) and the angle that beats the SERP (most rank a bare list — we add a real "how to use", a sourced "why they help", and a gentle ladder for an anxious reader).
 2. WebSearch the keyword → read the top 10 results, the PAA, and the snippet currently winning. WebFetch a psychology source to confirm what the research actually supports.
 3. Synthesize the brief → the grouping (an-anxious-moment / racing-thoughts / grounding), the FAQ from PAA, the heading outline, the sibling posts to link (sleep, self-love).
-4. Draft as a property set + Notion blocks: the leading `quote` answer, the grouped affirmation lists, the "why they help" with the citation and a light support-not-replace note, the FAQ, one CTA.
+4. Draft as plain-Markdown MDX: the leading blockquote answer, the grouped affirmation lists, the "why they help" with the citation and a light support-not-replace note, the FAQ, one CTA.
 5. Read every affirmation as an anxious reader — present tense, first person, no denial, laddered where tender. Verify the science citation and any stat.
-6. Run the re-audit, then publish: create the Notion page, set `Status: Done`, run the migrate script. Drop the featured image so it lands at `public/blog/affirmations-for-anxiety-finding-peace-inner-calm.webp`.
+6. Run the re-audit, then write `content/posts/affirmations-for-anxiety-finding-peace-inner-calm.mdx`. Drop the featured image at `public/blog/affirmations-for-anxiety-finding-peace-inner-calm.webp`.
 
 Review at `/blog/<slug>` after `npm run dev`.
 
@@ -74,7 +74,7 @@ Do one topic at a time. Each post needs its own research pass and its own affirm
 
 ### Updating an existing post
 
-The canonical edit happens **in Notion**, then you re-run the migrate script. (Editing `content/posts/<slug>.json` directly works for a preview but gets overwritten on the next migrate.) After editing → re-audit (or `/b-review <slug>`) → re-check the affirmations, re-verify facts, correct what manual edits missed. There is no `dateModified` field — the update is tracked via Notion's `lastEditedTime` / git.
+Edit `content/posts/<slug>.mdx` directly → save → re-audit (or `/b-review <slug>`) → re-check the affirmations, re-verify facts, correct what manual edits missed. Bump `lastEditedTime` in the frontmatter — it feeds JSON-LD `dateModified` and og:modifiedTime.
 
 ---
 
@@ -82,14 +82,12 @@ The canonical edit happens **in Notion**, then you re-run the migrate script. (E
 
 | Artifact | Location |
 |---|---|
-| Post JSON (pulled from Notion) | `content/posts/<slug>.json` |
-| Post index | `content/posts/_index.json` |
-| Featured image | `public/blog/<slug>.webp` (the Notion "Featured Image" file) |
-| Inline / in-body images | `public/blog/<slug>-content-N.webp` (Notion image blocks) |
-| Migrate script (the publish step) | `scripts/migrate-notion.mjs` (`node --env-file=.env scripts/migrate-notion.mjs`) |
-| Post loader | `lib/posts.ts` |
-| Renderer | `components/NotionRenderer.tsx` |
-| Routes | `app/blog/[slug]/page.tsx`, `app/blog/page.tsx` |
+| Post MDX output | `content/posts/<slug>.mdx` (flat directory) |
+| Featured image | `public/blog/<slug>.webp` (frontmatter `featuredImage: "/blog/<slug>.webp"`) |
+| Inline images | `public/blog/<slug>-content-N.webp` → `![alt](/blog/<slug>-content-1.webp)` |
+| Asset generation (optional) | `scripts/gen-assets.mjs` |
+| Post loader | `lib/posts.ts` (`gray-matter`) |
+| Renderer | `components/MdxContent.tsx` (`next-mdx-remote` + `remark-gfm`), `app/blog/[slug]/page.tsx` |
 | Voice profile | `research/voice_profile.md` (lock), `protocols/site-voice-profile.md` (guide) |
 | Rotation log | `protocols/rotation-log.md` |
 | Optional commands | `.claude/commands/{blog,b-write,b-review}.md` |
@@ -101,7 +99,7 @@ The canonical edit happens **in Notion**, then you re-run the migrate script. (E
 - **No research API or keyword pipeline.** This site has no DataForSEO/Apify pipeline and no `plan/` folder. WebSearch / WebFetch cover SERP recon and fact-checking.
 - **No manual orchestrator.** You drive the pipeline; the pack supplies the discipline.
 - **No install.** The pack is markdown files in `protocols/blog/`. The slash commands are markdown files in `.claude/commands/`. Both load via `@` references.
-- **No React templates.** Every post renders through the single `app/blog/[slug]` route via the Notion renderer. The content type carries the shape; the CTA is an inline link to a sibling affirmation post.
+- **No React templates.** Every post renders through the single `app/blog/[slug]` route via `lib/posts.ts` + the `MdxContent` component map. The content type carries the shape; the CTA is an inline Markdown link to a sibling affirmation post.
 
 ---
 
