@@ -1,0 +1,20 @@
+{
+  "domain": "randomyl.com",
+  "subdomains": ["@", "www"],
+  "railway": {
+    "projectId": "276524cf-eb0a-44c6-b7e1-a416f3521745",
+    "environmentId": "a3236f50-2b8e-402e-a0b2-39e91dcb37e7",
+    "serviceId": "d60e3da2-b882-420a-b659-98adcb807489",
+    "targetPort": null
+  },
+  "email": {
+    "forward": {
+      "hello": "karlthegoo@hotmail.com"
+    }
+  },
+  "analytics": {
+    "timeZone": "Etc/UTC",
+    "currency": "USD",
+    "envVar": "NEXT_PUBLIC_GA_ID"
+  }
+}
