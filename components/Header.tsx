@@ -24,6 +24,7 @@ export function Header() {
         <Link href="/daily">Daily</Link>
         <Link href="/journal">Journal</Link>
         <Link href="/blog">Blog</Link>
+        <Link href="/printables">Printables</Link>
         <SearchToggle index={index} />
         <ThemeToggle />
       </nav>

@@ -153,7 +153,7 @@ export default function PrintablesLanding() {
         </Link>
       </div>
 
-      <section className="faq" aria-label="Frequently asked questions">
+      <section className="faq faq-standalone" aria-label="Frequently asked questions">
         <h2 className="faq-head">Questions, gently answered</h2>
         <div className="faq-list">
           {FAQ.map((item) => (
