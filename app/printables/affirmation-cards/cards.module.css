@@ -1,0 +1,159 @@
+/*
+ * Print-optimized affirmation cards. The screen view shows the sheets as pages
+ * on a neutral backdrop; print/PDF strips everything to the cards themselves.
+ * Palette is the site's SAND tokens, hardcoded — a printable is always the warm
+ * light look, never Dusk — but fonts reuse the global --serif / --sans vars.
+ */
+
+.wrap {
+  --p-bg: #faf8f4;
+  --p-card: #fffdf9;
+  --p-ink: #2b2a27;
+  --p-ink-soft: #565049;
+  --p-muted: #837a6e;
+  --p-clay: #b07d52;
+  --p-clay-soft: #cda685;
+
+  background: #ddd7cd;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  color: var(--p-ink-soft);
+  font-family: var(--sans);
+  max-width: 8.5in;
+}
+.toolbar h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.5rem;
+  color: var(--p-ink);
+  margin: 0;
+}
+.toolbar p { margin: 0; font-size: 0.9rem; color: var(--p-muted); }
+
+/* one printable page */
+.sheet {
+  width: 8.5in;
+  height: 11in;
+  background: var(--p-bg);
+  color: var(--p-ink);
+  padding: 0.6in 0.55in;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 30px rgba(43, 42, 39, 0.18);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.sheetHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 0.18in;
+  border-bottom: 1px solid rgba(43, 42, 39, 0.12);
+}
+.eyebrow {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 11pt;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--p-clay);
+}
+.brand {
+  font-family: var(--sans);
+  font-size: 8.5pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--p-muted);
+}
+
+.grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0.3in;
+  margin-top: 0.3in;
+}
+
+.card {
+  border: 1.4px dashed var(--p-clay-soft);
+  border-radius: 12px;
+  background: var(--p-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.28in 0.3in;
+  gap: 0.5rem;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 30%, var(--p-clay-soft), var(--p-clay));
+}
+.aff {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 19pt;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: var(--p-ink);
+  margin: 0;
+  max-width: 18ch;
+}
+.mark {
+  font-family: var(--sans);
+  font-size: 7.5pt;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--p-muted);
+  margin-top: 0.1rem;
+}
+
+/* ---- print / PDF ---- */
+@page {
+  size: Letter;
+  margin: 0;
+}
+
+@media print {
+  :global(.site-head),
+  :global(.site-foot),
+  :global(.flex.min-h-screen > footer),
+  .toolbar {
+    display: none !important;
+  }
+  :global(html),
+  :global(body) {
+    background: #faf8f4 !important;
+  }
+  .wrap {
+    background: none;
+    padding: 0;
+    gap: 0;
+  }
+  .sheet {
+    box-shadow: none;
+    break-after: page;
+  }
+  .sheet:last-child {
+    break-after: auto;
+  }
+}

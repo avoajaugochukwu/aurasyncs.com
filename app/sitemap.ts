@@ -67,5 +67,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...routeUrls, ...dailyHub, ...dailyUrls, ...journalIndex, ...journalUrls, ...blogUrls, ...authorUrls];
+  // Printables landing (the free affirmation-cards lead magnet). The raw print
+  // routes + the PDF/PNG assets are intentionally excluded (noindex / not pages).
+  const printables: MetadataRoute.Sitemap = [{
+    url: `${baseUrl}/printables`,
+    lastModified: formattedDate,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }];
+
+  return [...routeUrls, ...dailyHub, ...dailyUrls, ...journalIndex, ...journalUrls, ...printables, ...blogUrls, ...authorUrls];
 }

@@ -1,0 +1,108 @@
+/*
+ * Vertical Pinterest pin (1000x1500, 2:3). Rendered from the site's design system
+ * and screenshotted to public/printables/affirmation-cards-pin.png by
+ * scripts/gen-printables.mjs. Chrome is hidden on this route (screen, not print)
+ * so the screenshot is just the pin.
+ */
+
+/* hide site chrome on this route so the shot is only the pin */
+:global(.site-head),
+:global(.site-foot) {
+  display: none !important;
+}
+:global(body),
+:global(html) {
+  background: #f5efe6 !important;
+}
+:global(.flex.min-h-screen),
+:global(main) {
+  display: block !important;
+}
+
+.pin {
+  width: 1000px;
+  height: 1500px;
+  margin: 0 auto;
+  background: linear-gradient(170deg, #faf8f4 0%, #f3ece1 100%);
+  color: #2b2a27;
+  box-sizing: border-box;
+  padding: 92px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #b07d52;
+}
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 30%, #cda685, #b07d52);
+  margin: 40px 0 28px;
+}
+.title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 104px;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.sub {
+  font-family: var(--sans);
+  font-size: 30px;
+  line-height: 1.45;
+  color: #565049;
+  margin: 30px 0 0;
+  max-width: 22ch;
+}
+
+.cards {
+  margin-top: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  width: 100%;
+}
+.card {
+  background: #fffdf9;
+  border: 1.5px dashed #cda685;
+  border-radius: 18px;
+  padding: 34px 28px;
+  font-family: var(--serif);
+  font-size: 40px;
+  line-height: 1.2;
+  color: #2b2a27;
+}
+
+.foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.free {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 30px;
+  color: #b07d52;
+  letter-spacing: 0.04em;
+}
+.brand {
+  font-family: var(--sans);
+  font-size: 24px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #837a6e;
+}

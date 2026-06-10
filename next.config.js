@@ -21,6 +21,9 @@ const JOURNAL_MOVED = [
 const nextConfig = {
   // Pin the workspace root so Next.js doesn't infer it from a stray parent lockfile.
   outputFileTracingRoot: __dirname,
+  // Hide the dev overlay badge so printable assets screenshotted from the dev
+  // server (scripts/gen-printables.mjs) come out clean.
+  devIndicators: false,
   async redirects() {
     return [
       ...Object.entries(POST_REDIRECTS).map(([from, to]) => ({

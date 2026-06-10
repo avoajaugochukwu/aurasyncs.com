@@ -1,0 +1,159 @@
+/*
+ * Coloring-page variant of the affirmation cards: white paper, hollow outlined
+ * serif letters and a decorative frame to color in. Same 6-per-sheet layout as
+ * the standard cards. Print-only ink savings + a distinct keyword (coloring pages).
+ */
+
+.wrap {
+  --c-ink: #2b2a27;
+  --c-line: #2b2a27;
+  background: #e9e9e9;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  font-family: var(--sans);
+  color: #555;
+  max-width: 8.5in;
+}
+.toolbar h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.5rem;
+  color: var(--c-ink);
+  margin: 0;
+}
+.toolbar p { margin: 0; font-size: 0.9rem; color: #777; }
+
+.sheet {
+  width: 8.5in;
+  height: 11in;
+  background: #ffffff;
+  color: var(--c-ink);
+  padding: 0.6in 0.55in;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.sheetHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 0.18in;
+  border-bottom: 2px solid var(--c-line);
+}
+.eyebrow {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 11pt;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+}
+.brand {
+  font-family: var(--sans);
+  font-size: 8.5pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #999;
+}
+
+.grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0.3in;
+  margin-top: 0.3in;
+}
+
+/* double-line frame to color */
+.card {
+  border: 2px solid var(--c-line);
+  border-radius: 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.32in 0.34in;
+  gap: 0.55rem;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid var(--c-line);
+  border-radius: 10px;
+  pointer-events: none;
+}
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-line);
+  background: transparent;
+}
+/* hollow outlined letters — the part you color */
+.aff {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 20pt;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0;
+  max-width: 18ch;
+  color: #ffffff;
+  -webkit-text-stroke: 1.1px var(--c-ink);
+}
+.mark {
+  font-family: var(--sans);
+  font-size: 7.5pt;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #aaa;
+  margin-top: 0.1rem;
+}
+
+@page {
+  size: Letter;
+  margin: 0;
+}
+
+@media print {
+  :global(.site-head),
+  :global(.site-foot),
+  .toolbar {
+    display: none !important;
+  }
+  :global(html),
+  :global(body) {
+    background: #ffffff !important;
+  }
+  .wrap {
+    background: none;
+    padding: 0;
+    gap: 0;
+  }
+  .sheet {
+    box-shadow: none;
+    break-after: page;
+  }
+  .sheet:last-child {
+    break-after: auto;
+  }
+}

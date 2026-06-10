@@ -146,4 +146,11 @@ _Low volume each, but ideal for a Pinterest-pinned free PDF + email capture. The
 | 5 | `shadow-work-prompts` | shadow work prompts | ↔ spiritual / self-love posts; strong safety framing | ✅ shipped |
 | 6 | `journal-prompts-for-teens` | journal prompts for teens | ↔ teen affirmations; parent + teen facing | ✅ shipped |
 | 7 | `self-love-journal-prompts` | self love journal prompts | ↔ self-love-affirmations | ✅ shipped |
-| 8 | `free-printable-affirmation-cards` | printable affirmation cards | Lead magnet (PDF + Pinterest) | ⏳ next — printables |
+| 8 | `/printables` (+ assets) | printable affirmation cards | Lead magnet — **open download**, no gate | ✅ shipped |
+
+### Printables (post 8) — shipped 2026-06-09
+- **Open download** (no email gate) — SEO/Pinterest-first per decision. Landing: `app/printables/page.tsx` (`/printables`, indexed, FAQ schema, download CTA + live preview + affirmation lists + internal links).
+- Print routes (noindex): `/printables/affirmation-cards` (4 sand sheets, 6 cards each) + `/printables/affirmation-cards-coloring` (line-art) + `/printables/pin` (1000×1500). Shared affirmations in `app/printables/affirmation-sets.ts` (24 lines, 4 sets).
+- Assets in `public/printables/`: `affirmation-cards.pdf`, `affirmation-cards-coloring.pdf`, `affirmation-cards-pin.png`. Regenerate with `node scripts/gen-printables.mjs` (server must be running).
+- Embedded as a Related CTA on the journal hub + self-love + gratitude posts. `/printables` in sitemap.
+- **Open follow-up:** the committed `…-pin.png` was generated from the dev server and carries the Next dev badge; `devIndicators:false` is set — re-run the gen script after a dev restart for the clean asset.

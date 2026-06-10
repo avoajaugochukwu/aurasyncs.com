@@ -89,6 +89,22 @@ function journalRelated(slug: string): RelatedLink[] {
     }
   };
 
+  // Lead-magnet embed: surface the free printable cards on the posts whose readers
+  // are most likely to want them (the hub + the self-love/gratitude spokes).
+  const PRINTABLE_CTA_ON = new Set([
+    'journal-prompts',
+    'self-love-journal-prompts',
+    'gratitude-journal-prompts',
+  ]);
+  if (PRINTABLE_CTA_ON.has(slug)) {
+    links.push({
+      title: 'Free Printable Affirmation Cards',
+      note: '24 cards to print, cut out, and keep close — free PDF, no email.',
+      href: '/printables',
+    });
+    seen.add('/printables');
+  }
+
   if (isJournalHub(slug)) {
     // Hub → its highest-impact spokes.
     ['journaling-for-anxiety', 'gratitude-journal-prompts', 'manifestation-journal-prompts'].forEach(
