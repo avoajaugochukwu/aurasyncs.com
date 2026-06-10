@@ -148,7 +148,9 @@ _Low volume each, but ideal for a Pinterest-pinned free PDF + email capture. The
 | 7 | `self-love-journal-prompts` | self love journal prompts | ↔ self-love-affirmations | ✅ shipped |
 | 8 | `/printables` (+ assets) | printable affirmation cards | Lead magnet — **open download**, no gate | ✅ shipped |
 
-### Printables (post 8) — shipped 2026-06-09
+### Printables (post 8) — ⚠️ TODO: REWORK — first pass shipped 2026-06-09, NOT final
+> User flagged the printable "is not what the printable should be" and will review/redesign `/printables` later. Treat the below as a first pass to be reworked, not done.
+
 - **Open download** (no email gate) — SEO/Pinterest-first per decision. Landing: `app/printables/page.tsx` (`/printables`, indexed, FAQ schema, download CTA + live preview + affirmation lists + internal links).
 - Print routes (noindex): `/printables/affirmation-cards` (4 sand sheets, 6 cards each) + `/printables/affirmation-cards-coloring` (line-art) + `/printables/pin` (1000×1500). Shared affirmations in `app/printables/affirmation-sets.ts` (24 lines, 4 sets).
 - Assets in `public/printables/`: `affirmation-cards.pdf`, `affirmation-cards-coloring.pdf`, `affirmation-cards-pin.png`. Regenerate with `node scripts/gen-printables.mjs` (server must be running).
